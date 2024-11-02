@@ -282,9 +282,12 @@ void SA1::IRAM::writeSA1(unsigned address, uint8_t data) {
 void SA1::dmaNormal() {
   while(mmio.dtc--) {
     uint8_t data = r.mdr;
-    uint32_t source = mmio.dsa;
-    mmio.dsa = (mmio.dsa + 1) & 0xffffff;
-    uint16_t target = mmio.dda++;
+
+    uint32_t source = mmio.dsa++;
+    source &= 0xffffff;
+
+    uint32_t target = mmio.dda++;
+    target &= 0xffffff;
 
     if(mmio.sd == DMA::SourceROM && mmio.dd == DMA::DestBWRAM) {
       step();
