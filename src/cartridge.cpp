@@ -303,10 +303,6 @@ std::pair<void*, unsigned> Cartridge::getMemoryRaw(unsigned type) {
         else if (has.HitachiDSP) {
           return std::make_pair(hitachidsp.ram.data(), hitachidsp.ram.size());
         }
-        else if (has.NECDSP) {
-          unsigned ramsize = necdsp.revision == NECDSP::Revision::uPD7725 ? (2 * 256) : (2 * 2048);
-          return std::make_pair(necdsp.dataRAM, ramsize);
-        }
         else if (has.SPC7110) {
           return std::make_pair(spc7110.ram.data(), spc7110.ram.size());
         }
@@ -824,19 +820,6 @@ bool Cartridge::load() {
       }
 
       if (!foundDSP) {
-        for (std::string& m : BML::searchList(p, "memory")) {
-          if (BML::search(m, {"memory", "type"}) == "RAM" &&
-              BML::search(m, {"memory", "content"}) == "Data") {
-            has.SRAM = true;
-            std::vector<uint8_t> sramfile;
-            if (openFileCallback(udata_v, "save.ram", sramfile)) {
-              for (unsigned i = 0; i < 256; ++i) {
-                necdsp.dataRAM[i] = sramfile[i * 2] | (sramfile[i * 2 + 1] << 8);
-              }
-            }
-          }
-        }
-
         has.NECDSP = true;
         necdsp.revision = NECDSP::Revision::uPD7725;
 
@@ -902,12 +885,6 @@ bool Cartridge::load() {
         for (std::string& m : BML::searchList(p, "memory")) {
           if (BML::search(m, {"memory", "type"}) == "RAM" &&
               BML::search(m, {"memory", "content"}) == "Data") {
-            std::vector<uint8_t> sramfile;
-            if (openFileCallback(udata_v, "save.ram", sramfile)) {
-              for (unsigned i = 0; i < 2048; ++i) {
-                necdsp.dataRAM[i] = sramfile[i * 2] | (sramfile[i * 2 + 1] << 8);
-              }
-            }
             for (std::string map : BML::searchList(m, "map")) {
               loadMap(map, {&NECDSP::readRAM, &necdsp}, {&NECDSP::writeRAM, &necdsp});
             }
@@ -1310,32 +1287,6 @@ void Cartridge::save() {
           }
           else if (content == "Save") {
             writeCallback(udata_wr, "save.ram", hitachidsp.ram.data(), hitachidsp.ram.size());
-          }
-        }
-      }
-    }
-    //processor(architecture=uPD7725)
-    else if (arch == "uPD7725") {
-      for (std::string& m : BML::searchList(p, "memory")) {
-        if (BML::search(m, {"memory", "type"}) == "RAM" &&
-            BML::search(m, {"memory", "content"}) == "Data" &&
-            BML::search(m, {"memory", "architecture"}) == "uPD7725") {
-          Game::Memory file;
-          if (game.memory(file, m) && file.nonVolatile) {
-            writeCallback(udata_wr, "save.ram", (uint8_t*)necdsp.dataRAM, 2 * 256);
-          }
-        }
-      }
-    }
-    //processor(architecture=uPD96050)
-    else if (arch == "uPD96050") {
-      for (std::string& m : BML::searchList(p, "memory")) {
-        if (BML::search(m, {"memory", "type"}) == "RAM" &&
-            BML::search(m, {"memory", "content"}) == "Data" &&
-            BML::search(m, {"memory", "architecture"}) == "uPD96050") {
-          Game::Memory file;
-          if (game.memory(file, m) && file.nonVolatile) {
-            writeCallback(udata_wr, "save.ram", (uint8_t*)necdsp.dataRAM, (4 * 1024));
           }
         }
       }
