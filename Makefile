@@ -236,10 +236,10 @@ $(DATA_BIN_TARGET): $(DATA_BASE:%=$(SOURCEDIR)/%) $(BIN_OUT)/.tag
 
 install-data: all
 	@mkdir -p $(DESTDIR)$(DATADIR)/jollygood/$(NAME)
-	cp $(NAME)/boards.bml $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
-	cp $(NAME)/BSMemory.bml $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
-	cp $(NAME)/SufamiTurbo.bml $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
-	cp $(NAME)/SuperFamicom.bml $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
+	cp $(DATA_OUT)/boards.bml $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
+	cp $(DATA_OUT)/BSMemory.bml $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
+	cp $(DATA_OUT)/SufamiTurbo.bml $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
+	cp $(DATA_OUT)/SuperFamicom.bml $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
 
 install-docs::
 	cp $(DEPDIR)/byuuML/LICENSE $(DESTDIR)$(DOCDIR)/LICENSE-byuuML
