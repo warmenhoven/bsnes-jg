@@ -353,7 +353,7 @@ namespace SameBoy {
   static void vblank(GB_gameboy_t*, GB_vblank_type_t) {
   }
 
-  static void log(GB_gameboy_t *gb, const char *string, GB_log_attributes attributes) {
+  static void log(GB_gameboy_t *gb, const char *string, GB_log_attributes_t attributes) {
       if (gb || string || attributes) {}
   }
 }
