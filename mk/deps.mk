@@ -1,3 +1,4 @@
+-include $(SOURCEDIR)/mk/core.mk
 -include $(SOURCEDIR)/mk/miniz.mk
 -include $(SOURCEDIR)/mk/samplerate.mk
 -include $(SOURCEDIR)/mk/speexdsp.mk

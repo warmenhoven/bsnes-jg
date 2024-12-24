@@ -17,6 +17,8 @@ override LIBPATH := $(LIBDIR)/jollygood
 
 override PKGCONF_SH := $(wildcard $(SOURCEDIR)/lib/pkgconf.sh)
 
+override LIBS_PRIVATE += $(LIBS) $(LIBS_STATIC)
+
 ifneq ($(PKGCONF_SH),)
 	override PKGCONFLIBDIR := \
 		$(shell $(PKGCONF_SH) "$(EXEC_PREFIX)" "$(LIBDIR)" exec_)

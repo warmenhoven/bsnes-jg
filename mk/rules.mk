@@ -18,7 +18,7 @@ $(TARGET_STATIC_MK): $(TARGET_STATIC_JG)
 	@printf '%s\n%s\n%s\n%s\n' 'NAME := $(JGNAME)' \
 		'$(strip ASSETS := $(DATA))' \
 		'$(strip ICONS := $(ICONS))' \
-		'$(strip LIBS_STATIC := $(LIBS) $(LIBS_JG))' > $@
+		'$(strip LIBS_STATIC := $(LIBS) $(LIBS_STATIC) $(LIBS_JG))' > $@
 
 static-jg: $(TARGET_DESKTOP) $(TARGET_ICONS) $(TARGET_STATIC_MK)
 

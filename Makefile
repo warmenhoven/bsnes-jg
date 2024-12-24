@@ -17,7 +17,8 @@ SRCDIR := $(SOURCEDIR)/src
 INCLUDES = -I$(SRCDIR)
 INCLUDES_JG = -I$(SRCDIR)
 
-LIBS = -lm -lstdc++
+LIBS = -lm
+LIBS_STATIC = -lstdc++
 
 LIBS_REQUIRES := samplerate
 
@@ -53,8 +54,6 @@ override INSTALL_SHARED := 1
 
 include $(SOURCEDIR)/version.h
 include $(SOURCEDIR)/mk/jg.mk
-
-override LIBS_PRIVATE += $(LIBS)
 
 CPPFLAGS_BIN := -DDATADIR="\"$(DATADIR)/jollygood/$(NAME)\""
 CPPFLAGS_GB := -DGB_INTERNAL -DGB_DISABLE_CHEATS -DGB_DISABLE_DEBUGGER \
