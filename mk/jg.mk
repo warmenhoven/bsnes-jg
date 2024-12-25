@@ -50,7 +50,7 @@ ifeq ($(UNAME), Darwin)
 	override SHARED += -dynamiclib
 	override SONAME := -Wl,-install_name,$(LIBDIR)/$(LIB_MAJOR)
 	override SYMBOLS_LIST := $(SYMBOLS)
-	override UNDEFINED := -Wl,-undefined,error
+	override UNDEFINED :=
 	override VERSION_SCRIPT := -Wl,-exported_symbols_list
 else
 	override LIB_MAJOR := $(LIB_SHARED).$(VERSION_MAJOR)
