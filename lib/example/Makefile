@@ -24,6 +24,8 @@ BML_SOURCES = ../../Database/BSMemory.bml \
 	../../Database/SuperFamicom.bml \
 	../../Database/boards.bml
 
+FLAGS = -std=c++11 -Wall -Wextra -Wshadow -pedantic
+
 CFLAGS_LIBBSNES = `$(PKG_CONFIG) --cflags libbsnes`
 LIBS_LIBBSNES = `$(PKG_CONFIG) --libs libbsnes`
 
@@ -37,13 +39,15 @@ DEFINES = -DDATADIR="\"$(DATADIR)/$(NAME)\""
 INCLUDES = $(CFLAGS_LIBBSNES) $(CFLAGS_SDL2) $(CFLAGS_SAMPLERATE)
 LIBS = $(LIBS_LIBBSNES) $(LIBS_SDL2) $(LIBS_SAMPLERATE)
 
+BUILD_FLAGS = $(CXXFLAGS) $(FLAGS) $(CPPFLAGS) $(DEFINES) $(INCLUDES)
+
 all: $(NAME) $(BML)
 
 $(BML): $(BML_SOURCES)
 	cp ../../Database/$@ .
 
 $(NAME): example.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(DEFINES) $(INCLUDES) -o $@ $? $(LDFLAGS) $(LIBS)
+	$(CXX) $(BUILD_FLAGS) -o $@ $? $(LDFLAGS) $(LIBS)
 
 install: all
 	mkdir -p $(DESTDIR)$(BINDIR)
