@@ -172,8 +172,8 @@ install-pkgconfig: $(SOURCEDIR)/lib/pkgconf.pc.in all
 		-e 's|@VERSION@|$(VERSION)|' \
 		-e 's|@DESCRIPTION@|$(DESCRIPTION)|' \
 		-e 's|@NAME@|$(NAME)|' \
-		-e '/Libs:/a\' -e '$(LIBS_PRIVATE)' \
-		-e '/URL:/a\' -e '$(REQUIRES_PRIVATE)' \
+		-e '/Libs:/a\'$$'\n''$(LIBS_PRIVATE)' \
+		-e '/URL:/a\'$$'\n''$(REQUIRES_PRIVATE)' \
 		$< \
 		> $(DESTDIR)$(LIBDIR)/pkgconfig/$(LIB_PC)
 
