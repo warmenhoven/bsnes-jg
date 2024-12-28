@@ -342,7 +342,7 @@ int main (int argc, char *argv[]) {
     SDL_GetCurrentDisplayMode(SDL_GetWindowDisplayIndex(window), &dm);
 
     // Allocate video buffer
-    size_t vbufsize = SCREEN_WIDTH * SCREEN_HEIGHT * 4 * sizeof(uint32_t);
+    size_t vbufsize = SCREEN_WIDTH * (SCREEN_HEIGHT + 8) * 4 * sizeof(uint32_t);
     vbuf = (uint32_t*)calloc(vbufsize, 1);
 
     // Set up SDL Audio
