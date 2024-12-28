@@ -63,7 +63,7 @@
 #define RETRO_MEMORY_ST_B_SRAM  ((4 << 8) | RETRO_MEMORY_SAVE_RAM)
 
 // Audio/Video buffers
-static uint32_t vbuf[(VIDEO_WIDTH * VIDEO_HEIGHT) << 3];
+static uint32_t vbuf[(VIDEO_WIDTH * (VIDEO_HEIGHT + 8)) << 3];
 static float abuf[(SAMPLERATE / 50) << 1];
 static int16_t abuf_out[(SAMPLERATE / 50) << 1];
 
