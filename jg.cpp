@@ -56,15 +56,15 @@ static jg_coreinfo_t coreinfo = {
 };
 
 static jg_videoinfo_t vidinfo = {
-    JG_PIXFMT_XRGB8888, // pixfmt
-    VIDEO_WIDTH << 1,   // wmax
-    VIDEO_HEIGHT << 1,  // hmax
-    VIDEO_WIDTH,        // w
-    VIDEO_HEIGHT,       // h
-    0,                  // x
-    0,                  // y
-    VIDEO_WIDTH << 2,   // p
-    ASPECT_NTSC,        // aspect
+    JG_PIXFMT_XRGB8888,         // pixfmt
+    VIDEO_WIDTH << 1,           // wmax
+    (VIDEO_HEIGHT + 8) << 1,    // hmax
+    VIDEO_WIDTH,                // w
+    VIDEO_HEIGHT,               // h
+    0,                          // x
+    0,                          // y
+    VIDEO_WIDTH << 2,           // p
+    ASPECT_NTSC,                // aspect
     NULL
 };
 
