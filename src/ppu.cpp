@@ -1769,7 +1769,7 @@ void PPU::Screen::scanline() {
 }
 
 void PPU::Screen::run() {
-  if(ppu.vcounter() > 232 || ppu.vcounter() == 0) return;
+  if(ppu.vcounter() == 0) return;
 
   bool hires      = ppu.io.pseudoHires || ppu.io.bgMode == 5 || ppu.io.bgMode == 6;
   unsigned belowColor = below(hires);

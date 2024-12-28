@@ -17,6 +17,8 @@ override LIBPATH := $(LIBDIR)/jollygood
 
 override PKGCONF_SH := $(wildcard $(SOURCEDIR)/lib/pkgconf.sh)
 
+override LIBS_PRIVATE += $(LIBS) $(LIBS_STATIC)
+
 ifneq ($(PKGCONF_SH),)
 	override PKGCONFLIBDIR := \
 		$(shell $(PKGCONF_SH) "$(EXEC_PREFIX)" "$(LIBDIR)" exec_)
@@ -48,7 +50,7 @@ ifeq ($(UNAME), Darwin)
 	override SHARED += -dynamiclib
 	override SONAME := -Wl,-install_name,$(LIBDIR)/$(LIB_MAJOR)
 	override SYMBOLS_LIST := $(SYMBOLS)
-	override UNDEFINED := -Wl,-undefined,error
+	override UNDEFINED :=
 	override VERSION_SCRIPT := -Wl,-exported_symbols_list
 else
 	override LIB_MAJOR := $(LIB_SHARED).$(VERSION_MAJOR)
@@ -70,7 +72,6 @@ override VERSION_SCRIPT_NAME = $(shell printf %s lib$(NAME) | \
 override VERSION_SCRIPT_MODULE := $(VERSION_SCRIPT),$(OBJDIR)/module.map
 
 # Prerequisites
-override PREREQ := $(OBJDIR)/.tag
 override PREREQ_DATA =
 override PREREQ_EXAMPLE = $(TARGET_BIN)
 
