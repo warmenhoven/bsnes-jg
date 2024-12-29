@@ -400,7 +400,7 @@ void SA1::dmaCC2() {
   addr += (dma.line & 8) * bpp;
   addr += (dma.line & 7) * 2;
 
-  for(unsigned byte = 0; byte < bpp; ++bpp) {
+  for(unsigned byte = 0; byte < bpp; ++byte) {
     uint8_t output = 0;
     for(unsigned bit = 0; bit < 8; ++bit) {
       output |= ((brf[bit] >> byte) & 1) << (7 - bit);
