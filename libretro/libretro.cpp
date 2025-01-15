@@ -1,7 +1,7 @@
 /*
  * bsnes-jg libretro shim
  *
- * Copyright (C) 2020-2024 Rupert Carmichael
+ * Copyright (C) 2020-2025 Rupert Carmichael
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -732,7 +732,7 @@ static bool finishLoadGame() {
     }
 
     // Set up audio/video
-    unsigned spf(SAMPLERATE / (Bsnes::getRegion() ? TIMING_PAL : TIMING_NTSC));
+    unsigned spf{48}; // 48 samples per channel is best for low latency setups
     Bsnes::setAudioSpec({double(SAMPLERATE), spf << 1, 0, abuf, nullptr, &audioFrame});
     Bsnes::setVideoSpec({vbuf, nullptr, &videoFrame});
 
