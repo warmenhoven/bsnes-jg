@@ -44,6 +44,15 @@ BSD:
 Windows (MSYS2):
   make
 
+Cross Compile:
+(For example compiling on Linux for MinGW)
+  AR=x86_64-w64-mingw32-ar \
+  CC=x86_64-w64-mingw32-cc \
+  CXX=x86_64-w64-mingw32-c++ \
+  PKG_CONFIG=x86_64-w64-mingw32-pkg-config \
+  STRIP=x86_64-w64-mingw32-strip \
+  make
+
 The build will be output to "bsnes/". This directory may be used as is
 locally by copying it to your local "cores" directory, or may be installed
 system-wide using the "install" target specified in the Makefile.
