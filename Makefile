@@ -172,10 +172,14 @@ DATA_TARGET := $(DATA:%=$(NAME)/%)
 DATA_BIN_TARGET := $(DATA:%=$(BIN_OUT)/%)
 
 # List of object files
-OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o) $(CXXSRCS:.cpp=.o) \
-	$(OBJS_SAMPLERATE))
+OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o) $(CXXSRCS:.cpp=.o)) \
+	$(OBJS_SAMPLERATE)
 OBJS_BIN := $(patsubst %,$(OBJDIR)/%,$(BINSRCS:.cpp=.o))
 OBJS_JG := $(patsubst %,$(OBJDIR)/%,$(JGSRCS:.cpp=.o))
+
+ifneq ($(ENABLE_SHARED), 0)
+	OBJS_BIN += $(OBJS_SAMPLERATE)
+endif
 
 # Dependency commands
 BUILD_BML = $(call COMPILE_CXX, $(FLAGS) $(WARNINGS))
