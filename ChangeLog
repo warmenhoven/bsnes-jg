@@ -1,3 +1,11 @@
+Version 2.0.1
+-------------
+ - SA-1 fixes: DMA to BWRAM, Type 2 character conversion regression
+ - Extend drawing into full overscan range
+ - Update to SameBoy 1.0
+ - Remove dead code
+ - Build improvements
+
 Version 2.0.0
 -------------
  - Update to SameBoy 0.16.6
