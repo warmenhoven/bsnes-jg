@@ -818,7 +818,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device) {
 void retro_get_system_info(struct retro_system_info *info) {
     memset(info, 0, sizeof(*info));
     info->library_name     = "bsnes-jg";
-    info->library_version  = "2.0.0";
+    info->library_version  = "2.0.1";
     info->need_fullpath    = false;
     info->valid_extensions = "smc|sfc|gb|gbc|bs|st";
 }
