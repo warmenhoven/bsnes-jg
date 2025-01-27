@@ -30,8 +30,6 @@ namespace BML {
 class streamreader : public byuuML::reader {
     char buf[512];
     std::istream& is;
-public:
-    streamreader(std::istream& _is) : is(_is) {}
     void read_more(const char*& begin, const char*& end) override {
         begin = buf;
         if(!is) {
@@ -41,6 +39,8 @@ public:
         is.read(buf, sizeof(buf));
         end = begin + is.gcount();
     }
+public:
+    streamreader(std::istream& _is) : is(_is) {}
 };
 
 // He bought? Dump eet.
