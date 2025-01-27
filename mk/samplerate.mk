@@ -14,7 +14,7 @@ ifneq ($(USE_VENDORED_SAMPLERATE), 0)
 		deps/libsamplerate/src_linear.c \
 		deps/libsamplerate/src_sinc.c \
 		deps/libsamplerate/src_zoh.c
-	OBJS_SAMPLERATE := $(SRCS_SAMPLERATE:.c=.o)
+	OBJS_SAMPLERATE := $(patsubst %,$(OBJDIR)/%,$(SRCS_SAMPLERATE:.c=.o))
 else
 	CFLAGS_SAMPLERATE = $(shell $(PKG_CONFIG) --cflags samplerate)
 	LIBS_SAMPLERATE = $(shell $(PKG_CONFIG) --libs samplerate)
@@ -31,6 +31,10 @@ endif
 
 ifneq ($(DIR_SAMPLERATE),)
 FLAGS_SAMPLERATE := -std=c99 $(WARNINGS_DEF_C)
+
+ifneq ($(PLATFORM), Windows)
+	FLAGS_SAMPLERATE += -fvisibility=hidden
+endif
 
 BUILD_SAMPLERATE = $(call COMPILE_C, $(FLAGS_SAMPLERATE))
 

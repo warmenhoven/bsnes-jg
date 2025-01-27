@@ -17,6 +17,8 @@ SRCDIR := $(SOURCEDIR)/src
 INCLUDES = -I$(SRCDIR)
 INCLUDES_JG = -I$(SRCDIR)
 
+LINKER = $(CXX)
+
 LIBS = -lm
 LIBS_STATIC = -lstdc++
 
@@ -57,13 +59,12 @@ include $(SOURCEDIR)/mk/jg.mk
 
 CPPFLAGS_BIN := -DDATADIR="\"$(DATADIR)/jollygood/$(NAME)\""
 CPPFLAGS_GB := -DGB_INTERNAL -DGB_DISABLE_CHEATS -DGB_DISABLE_DEBUGGER \
-	-D_GNU_SOURCE -DGB_VERSION=\"0.16.6\"
+	-D_GNU_SOURCE -DGB_VERSION=\"1.0\"
 
 INCLUDES += $(CFLAGS_SAMPLERATE) -I$(DEPDIR)
 LIBS += $(LIBS_SAMPLERATE)
 
 EXT := cpp
-LINKER := $(CXX)
 
 # Example dependencies
 INCLUDES_BIN = $(INCLUDES_JG) $(CFLAGS_SDL2) $(CFLAGS_SAMPLERATE)
@@ -171,10 +172,14 @@ DATA_TARGET := $(DATA:%=$(NAME)/%)
 DATA_BIN_TARGET := $(DATA:%=$(BIN_OUT)/%)
 
 # List of object files
-OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o) $(CXXSRCS:.cpp=.o) \
-	$(OBJS_SAMPLERATE))
+OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o) $(CXXSRCS:.cpp=.o)) \
+	$(OBJS_SAMPLERATE)
 OBJS_BIN := $(patsubst %,$(OBJDIR)/%,$(BINSRCS:.cpp=.o))
 OBJS_JG := $(patsubst %,$(OBJDIR)/%,$(JGSRCS:.cpp=.o))
+
+ifneq ($(ENABLE_SHARED), 0)
+	OBJS_BIN += $(OBJS_SAMPLERATE)
+endif
 
 # Dependency commands
 BUILD_BML = $(call COMPILE_CXX, $(FLAGS) $(WARNINGS))
