@@ -24,7 +24,7 @@ LIBS_STATIC = -lstdc++
 
 LIBS_REQUIRES := samplerate
 
-DOCS := COPYING README
+DOCS := ChangeLog COPYING README
 DOCS_EXAMPLE := README
 
 EXAMPLE := lib/example
