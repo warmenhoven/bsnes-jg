@@ -78,6 +78,7 @@ static int overscan_r = 0;
 static int c_luminance = 100;
 static int c_saturation = 100;
 static int c_gamma = 120;
+static int low_latency_audio = 0;
 
 // Variables used at runtime
 static std::string sysdir;
@@ -253,6 +254,11 @@ static void check_variables(bool first_run) {
         // DIP Switches at 0 is 3 minutes, 15 is 18 minutes
         if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
             Bsnes::setDIPSwitches((atoi(var.value) & 0xff) - 3);
+
+        var.key = "bsnes_jg_low_latency_audio";
+        var.value = NULL;
+        if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+            low_latency_audio = !strcmp(var.value, "on");
     }
 
     // Run-Ahead
@@ -732,7 +738,8 @@ static bool finishLoadGame() {
     }
 
     // Set up audio/video
-    unsigned spf{48}; // 48 samples per channel is best for low latency setups
+    unsigned spf = low_latency_audio ?
+        48 : (SAMPLERATE / (Bsnes::getRegion() ? TIMING_PAL : TIMING_NTSC));
     Bsnes::setAudioSpec({double(SAMPLERATE), spf << 1, 0, abuf, nullptr, &audioFrame});
     Bsnes::setVideoSpec({vbuf, nullptr, &videoFrame});
 

@@ -99,6 +99,18 @@ struct retro_core_option_definition option_defs_us[] = {
       "0"
    },
    {
+      "bsnes_jg_low_latency_audio",
+      "Low Latency Audio (Restart)",
+      "Use smaller audio sample chunks for a better experience when using a frontend with a low latency audio "
+      "configuration. Using this option in demanding coprocessor games may cause audio artifacts.",
+      {
+         { "off", "Off (Default)" },
+         { "on", "On" },
+         { NULL, NULL },
+      },
+      "off"
+   },
+   {
       "bsnes_jg_rsqual",
       "Resampler Quality (Restart)",
       "Set the internal resampler's quality level (you may hear a difference if you use pro audio equipment "
