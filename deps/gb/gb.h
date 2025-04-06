@@ -227,9 +227,9 @@ enum {
     GB_IO_PSWX       = 0x72, // X position of the palette switching window
     GB_IO_PSWY       = 0x73, // Y position of the palette switching window
     GB_IO_PSW        = 0x74, // Key combo to trigger the palette switching window
-    GB_IO_UNKNOWN5   = 0x75, // (8Fh) - Bit 4-6 (Read/Write)
-    GB_IO_PCM12     = 0x76, // Channels 1 and 2 amplitudes
-    GB_IO_PCM34     = 0x77, // Channels 3 and 4 amplitudes
+    GB_IO_PGB        = 0x75, // Bits 0-2 control PHI, A15 and ¬CS, respectively.  Bits 4-6 control the I/O directions of bits 0-2 (0 is R, 1 is W)
+    GB_IO_PCM12      = 0x76, // Channels 1 and 2 amplitudes
+    GB_IO_PCM34      = 0x77, // Channels 3 and 4 amplitudes
 };
 
 typedef enum {
@@ -676,6 +676,11 @@ struct GB_gameboy_internal_s {
         GB_color_correction_mode_t color_correction_mode;
         double light_temperature;
         bool keys[4][GB_KEY_MAX];
+        bool use_faux_analog[4];
+        struct {
+            int8_t x, y;
+        } faux_analog_inputs[4];
+        uint8_t faux_analog_ticks;
         double accelerometer_x, accelerometer_y;
         GB_border_mode_t border_mode;
         GB_sgb_border_t borrowed_border;
