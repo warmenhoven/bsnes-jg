@@ -6,7 +6,7 @@
 #include "defs.h"
 
 #define GB_BAND_LIMITED_WIDTH 16
-#define GB_BAND_LIMITED_PHASES 32
+#define GB_BAND_LIMITED_PHASES 512
 
 #ifdef GB_INTERNAL
 #define GB_BAND_LIMITED_ONE 0x10000 // fixed point value equal to 1
@@ -17,12 +17,7 @@
 
 
 /* Divides nicely and never overflows with 4 channels and 8 (1-8) volume levels */
-#ifdef WIIU
-/* Todo: Remove this hack once https://github.com/libretro/RetroArch/issues/6252 is fixed*/
-#define MAX_CH_AMP (0xFF0 / 2)
-#else
 #define MAX_CH_AMP 0xFF0
-#endif
 #define CH_STEP (MAX_CH_AMP/0xF/8)
 #endif
 
