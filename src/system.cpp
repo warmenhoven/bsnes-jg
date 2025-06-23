@@ -311,7 +311,7 @@ bool System::load() {
   const std::string headerTitle = cartridge.headerTitle();
 
   //these games will periodically deadlock when using "Normal" synchronization
-  if(headerTitle == "Star Ocean" || headerTitle == "TALES OF PHANTASIA")
+  if(headerTitle == "Star Ocean" || headerTitle == "TALES OF PHANTASIA" || cartridge.has.ICD)
     states_special = true;
   else
     states_special = false;
