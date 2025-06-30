@@ -1168,7 +1168,7 @@ void PPU::Background::fetchNameTable() {
         if(!(hlookup & 0x8000)) {
           hoffset = hpixel + (hlookup & ~7) + (hscroll & 7);
         } else {
-          voffset = vpixel + (vlookup);
+          voffset = vpixel + hlookup;
         }
       }
     } else {
