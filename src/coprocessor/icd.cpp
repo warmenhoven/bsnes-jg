@@ -27,7 +27,6 @@
 
 #include "icd.hpp"
 
-#define typeof decltype // Work around GNUism in SameBoy's API header
 extern "C" {
   #include <gb/gb.h>
 }
