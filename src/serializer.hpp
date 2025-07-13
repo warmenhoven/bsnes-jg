@@ -36,6 +36,16 @@
 
 struct serializer;
 
+/* This value is used by bsnes-jg as a state version number, since the state
+   format broke during the 2.0.2 development cycle. The number is a hex
+   representation of the bsnes-jg version when the state format last changed,
+   where each byte represents the patch, minor, and major version from the
+   least to most significant byte. The previously used "signature" in the state
+   is used to determine whether the state was created previous to the first
+   post-fork state format break.
+*/
+static const unsigned serializerVersion = 0x00020002;
+
 template<typename T>
 struct has_serialize {
   template<typename C> static char test(decltype(std::declval<C>().serialize(std::declval<serializer&>()))*);
@@ -45,6 +55,8 @@ struct has_serialize {
 
 struct serializer {
   enum Mode : unsigned { Load, Save, Size };
+
+  unsigned version = serializerVersion;
 
   Mode mode() const;
   const uint8_t* data() const;

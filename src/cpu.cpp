@@ -478,13 +478,21 @@ void CPU::writeCPU(unsigned addr, uint8_t data) {
     //bit 0 is shared between JOYSER0 and JOYSER1:
     //strobing $4016.d0 affects both controller port latches.
     //$4017 bit 0 writes are ignored.
-    controllerPort1.device->latch(data & 1);
-    controllerPort2.device->latch(data & 1);
+    status.cpuLatch = data & 1;
+    controllerPort1.device->latch(status.autoJoypadLatch | status.cpuLatch);
+    controllerPort2.device->latch(status.autoJoypadLatch | status.cpuLatch);
     return;
 
   case 0x4200:  //NMITIMEN
     io.autoJoypadPoll = data & 1;
-    if(!io.autoJoypadPoll) status.autoJoypadCounter = 33; // Disable auto-joypad read
+    if(status.autoJoypadCounter == 0) {
+      // allow controller latches during this time
+      status.autoJoypadLatch = io.autoJoypadPoll;
+      controllerPort1.device->latch(status.autoJoypadLatch | status.cpuLatch);
+      controllerPort2.device->latch(status.autoJoypadLatch | status.cpuLatch);
+    } else if (!io.autoJoypadPoll && status.autoJoypadCounter >= 2) {
+      status.autoJoypadCounter = 33;
+    }
     nmitimenUpdate(data);
     return;
 
@@ -820,47 +828,56 @@ void CPU::dmaEdge() {
 
 //called every 128 clocks from inside the CPU::stepOnce() function
 void CPU::joypadEdge() {
-  //it is not yet confirmed if polling can be stopped early and/or (re)started later
-  if(!io.autoJoypadPoll) return;
-
-  if(vcounter() == ppu.vdisp() && hcounter() >= 130 && hcounter() <= 256) {
+  if(vcounter() == ppu.vdisp() && (counter.cpu & 255) == 0 && hcounter() >= 130 && hcounter() <= 384) {
     //begin new polling sequence
     status.autoJoypadCounter = 0;
-  }
+  } else {
+    //stop after polling has been completed for this frame
+    if(status.autoJoypadCounter >= 33) return;
 
-  //stop after polling has been completed for this frame
-  if(status.autoJoypadCounter >= 33) return;
+    status.autoJoypadCounter++;
+  }
 
   if(status.autoJoypadCounter == 0) {
     //latch controller states on the first polling cycle
-    controllerPort1.device->latch(1);
-    controllerPort2.device->latch(1);
+    status.autoJoypadLatch = io.autoJoypadPoll;
+    controllerPort1.device->latch(status.autoJoypadLatch | status.cpuLatch);
+    controllerPort2.device->latch(status.autoJoypadLatch | status.cpuLatch);
+    if(io.autoJoypadPoll) {
+      //shift registers are cleared to zero at start of auto-joypad polling
+      io.joy1 = 0;
+      io.joy2 = 0;
+      io.joy3 = 0;
+      io.joy4 = 0;
+    }
   }
 
   if(status.autoJoypadCounter == 1) {
     //release latch and begin reading on the second cycle
-    controllerPort1.device->latch(0);
-    controllerPort2.device->latch(0);
-
-    //shift registers are cleared to zero at start of auto-joypad polling
-    io.joy1 = 0;
-    io.joy2 = 0;
-    io.joy3 = 0;
-    io.joy4 = 0;
+    status.autoJoypadLatch = 0;
+    controllerPort1.device->latch(status.autoJoypadLatch | status.cpuLatch);
+    controllerPort2.device->latch(status.autoJoypadLatch | status.cpuLatch);
   }
 
-  if(status.autoJoypadCounter >= 2 && !(status.autoJoypadCounter & 1)) {
+  if(status.autoJoypadCounter != 1 && !io.autoJoypadPoll) {
+    // if auto-joypad polling is disabled at this point skip the rest of the polling
+    status.autoJoypadCounter = 33;
+    return;
+  }
+
+  if(status.autoJoypadCounter >= 2) {
     //sixteen bits are shifted into joy{1-4}, one bit per 256 clocks
-    uint8_t port0 = controllerPort1.device->data();
-    uint8_t port1 = controllerPort2.device->data();
-
-    io.joy1 = io.joy1 << 1 | (port0 & 1);
-    io.joy2 = io.joy2 << 1 | (port1 & 1);
-    io.joy3 = io.joy3 << 1 | ((port0 & 2) >> 1);
-    io.joy4 = io.joy4 << 1 | ((port1 & 2) >> 1);
+    //the bits are read on one 128-clock cycle and written on the next
+    if ((status.autoJoypadCounter & 1) == 0) {
+      status.autoJoypadPort1 = controllerPort1.device->data();
+      status.autoJoypadPort2 = controllerPort2.device->data();
+    } else {
+      io.joy1 = io.joy1 << 1 | (status.autoJoypadPort1 & 1);
+      io.joy2 = io.joy2 << 1 | (status.autoJoypadPort2 & 1);
+      io.joy3 = io.joy3 << 1 | ((status.autoJoypadPort1 & 2) >> 1);
+      io.joy4 = io.joy4 << 1 | ((status.autoJoypadPort2 & 2) >> 1);
+    }
   }
-
-  ++status.autoJoypadCounter;
 }
 
 //nmiPoll() and irqPoll() are called once every four clock cycles;
@@ -1004,6 +1021,14 @@ void CPU::serialize(serializer& s) {
   s.integer(status.hdmaMode);
 
   s.integer(status.autoJoypadCounter);
+
+  if (s.version) {
+    s.integer(status.autoJoypadPort1);
+    s.integer(status.autoJoypadPort2);
+
+    s.boolean(status.cpuLatch);
+    s.boolean(status.autoJoypadLatch);
+  }
 
   s.integer(io.wramAddress);
 
