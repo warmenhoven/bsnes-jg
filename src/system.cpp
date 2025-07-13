@@ -49,6 +49,7 @@
 #include "dsp.hpp"
 #include "emulator.hpp"
 #include "expansion/expansion.hpp"
+#include "logger.hpp"
 #include "random.hpp"
 #include "settings.hpp"
 #include "sufamiturbo.hpp"
@@ -66,11 +67,13 @@ serializer System::serialize(bool synchronize) {
   if(!information.serializeSize[synchronize]) return {};  //should never occur
   if(synchronize) runToSave();
 
-  unsigned signature = 0x31545342;
+  unsigned signature = serializerVersion; // previously 0x31545342
   unsigned serializeSize = information.serializeSize[synchronize];
   char version[16] = {};
   char description[512] = {};
   bool placeholder = false;
+
+  // Note: This is here for legacy compatibility only. This version is forever frozen at 115
   std::memcpy(&version, (const char*)SerializerVersion.c_str(), SerializerVersion.size());
 
   serializer s(serializeSize);
@@ -99,10 +102,19 @@ bool System::unserialize(serializer& s) {
   s.boolean(synchronize);
   s.boolean(placeholder);
 
-  if((signature != 0x31545342)
-      || (serializeSize != information.serializeSize[synchronize])
-      || (std::string{version} != SerializerVersion))
+  if (signature == 0x31545342) {
+    /* When the state format changed during the 2.0.2 dev cycle, the size
+       increased by 10. Do update this whenever the state format changes!!
+    */
+    if ((serializeSize + 10) != information.serializeSize[synchronize]
+       || (std::string{version} != SerializerVersion))
+      return false;
+    logger.log(Logger::WRN, "Loading deprecated state version, success not guaranteed.\n");
+    s.version = 0;
+  }
+  else if ((signature != serializerVersion) || (serializeSize != information.serializeSize[synchronize])) {
     return false;
+  }
 
   if(synchronize) power(/* reset = */ false);
   serializeAll(s, synchronize);
