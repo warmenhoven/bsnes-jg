@@ -1,3 +1,10 @@
+Version 2.0.2
+-------------
+ - Update to SameBoy 1.0.1
+ - Improve SGB save state stability
+ - Fix offset-per-tile regression in mode 4
+ - Improve auto-joypad poll timing
+
 Version 2.0.1
 -------------
  - SA-1 fixes: DMA to BWRAM, Type 2 character conversion regression
