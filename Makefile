@@ -58,8 +58,9 @@ include $(SOURCEDIR)/version.h
 include $(SOURCEDIR)/mk/jg.mk
 
 CPPFLAGS_BIN := -DDATADIR="\"$(DATADIR)/jollygood/$(NAME)\""
-CPPFLAGS_GB := -DGB_INTERNAL -DGB_DISABLE_CHEATS -DGB_DISABLE_DEBUGGER \
-	-D_GNU_SOURCE -DGB_VERSION=\"1.0.1\"
+CPPFLAGS_GB := -DGB_INTERNAL -DGB_DISABLE_CHEATS -DGB_DISABLE_CHEAT_SEARCH \
+	-DGB_DISABLE_DEBUGGER -DGB_DISABLE_REWIND -D_GNU_SOURCE \
+	-DGB_VERSION=\"1.0.1\"
 
 INCLUDES += $(CFLAGS_SAMPLERATE) -I$(DEPDIR)
 LIBS += $(LIBS_SAMPLERATE)
@@ -90,7 +91,6 @@ CSRCS := deps/gb/apu.c \
 	deps/gb/memory.c \
 	deps/gb/printer.c \
 	deps/gb/random.c \
-	deps/gb/rewind.c \
 	deps/gb/rumble.c \
 	deps/gb/save_state.c \
 	deps/gb/sgb.c \
