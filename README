@@ -177,7 +177,7 @@ libsamplerate (BSD-2-Clause)
   See deps/libsamplerate/COPYING (https://github.com/libsndfile/libsamplerate)
 
 SameBoy (Expat)
-  Copyright (c) 2015-2024 Lior Halphon
+  Copyright (c) 2015-2025 Lior Halphon
   See deps/gb/LICENSE (https://github.com/LIJI32/SameBoy)
 
 snes_spc (LGPL-2.1-or-later)
