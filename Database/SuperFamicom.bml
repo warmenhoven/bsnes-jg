@@ -145,7 +145,7 @@ game
 
 //database
 //  revision: 2025-11-11
-// Special thanks to Rick Bruns and Yader Antón for preserving these carts
+//  Special thanks to Rick Bruns and Yader Antón for preserving these carts
 
 game
   sha256:   67c1a4917f4cd0fd704b83330a7e91763736c2d2a10a7e12318fdac54cd9c6c6
@@ -202,9 +202,62 @@ game
       frequency: 8000000
 
 game
-  sha256:   efa28b9ca1c63d953dacb1f77a50e55c137ed025f2e066282fb3be6412b65489
+  sha256:   6c83ee132db777b306caeb2da6f2cd971735fb06805af55979d99028b33bf659
   label:    Campus Challenge '92 (2nd Screen)
   name:     Campus Challenge '92 (2nd Screen)
+  title:    Campus Challenge '92
+  region:   NTSC
+  revision: 1.0
+  board:    EVENT-CC92
+    memory
+      type: ROM
+      size: 0x40000
+      content: Program
+    memory
+      type: ROM
+      size: 0x80000
+      content: Level-1
+    memory
+      type: ROM
+      size: 0x80000
+      content: Level-2
+    memory
+      type: ROM
+      size: 0x80000
+      content: Level-3
+    memory
+      type: RAM
+      size: 0x2000
+      content: Save
+      volatile
+    memory
+      type: ROM
+      size: 0x1800
+      content: Program
+      manufacturer: NEC
+      architecture: uPD7725
+      identifier: DSP1
+    memory
+      type: ROM
+      size: 0x800
+      content: Data
+      manufacturer: NEC
+      architecture: uPD7725
+      identifier: DSP1
+    memory
+      type: RAM
+      size: 0x200
+      content: Data
+      manufacturer: NEC
+      architecture: uPD7725
+      identifier: DSP1
+      volatile
+    oscillator
+      frequency: 8000000
+game
+  sha256:   efa28b9ca1c63d953dacb1f77a50e55c137ed025f2e066282fb3be6412b65489
+  label:    Campus Challenge '92 (2nd Screen) (Hack)
+  name:     Campus Challenge '92 (2nd Screen) (Hack)
   title:    Campus Challenge '92
   region:   NTSC
   revision: 1.0
