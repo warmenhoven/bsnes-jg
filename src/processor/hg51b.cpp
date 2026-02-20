@@ -40,13 +40,13 @@ uint32_t HG51B::readRegister(uint8_t address) {
   case 0x2e:
     io.bus.enable  = 1;
     io.bus.reading = 1;
-    io.bus.pending = (1 + io.wait.rom) & 0x0f;
+    io.bus.pending = io.wait.rom & 0x07;
     io.bus.address = r.mar;
     return 0x000000;
   case 0x2f:
     io.bus.enable  = 1;
     io.bus.reading = 1;
-    io.bus.pending = (1 + io.wait.ram) & 0x0f;
+    io.bus.pending = io.wait.ram & 0x07;
     io.bus.address = r.mar;
     return 0x000000;
 
@@ -104,13 +104,13 @@ void HG51B::writeRegister(uint8_t address, uint32_t data) {
   case 0x2e:
     io.bus.enable  = 1;
     io.bus.writing = 1;
-    io.bus.pending = (1 + io.wait.rom) & 0x0f;
+    io.bus.pending = io.wait.rom & 0x07;
     io.bus.address = r.mar;
     return;
   case 0x2f:
     io.bus.enable  = 1;
     io.bus.writing = 1;
-    io.bus.pending = (1 + io.wait.ram) & 0x0f;
+    io.bus.pending = io.wait.ram & 0x07;
     io.bus.address = r.mar;
     return;
 
@@ -1330,20 +1330,24 @@ void HG51B::suspend() {
 bool HG51B::cache() {
   uint32_t address = (io.cache.base + r.pb * 512) & 0xffffff;
 
-  //try to use the current page ...
-  if(io.cache.address[io.cache.page] == address) return io.cache.enable = 0, true;
-  //if it's not valid, try to use the other page ...
-  io.cache.page ^= 1;
-  if(io.cache.address[io.cache.page] == address) return io.cache.enable = 0, true;
-  //if it's not valid, try to load into the other page ...
-  if(io.cache.lock[io.cache.page]) io.cache.page ^= 1;
-  //if it's locked, try to load into the first page ...
-  if(io.cache.lock[io.cache.page]) return io.cache.enable = 0, false;
+  if(io.cache.preload == 0) {
+    //try to use the current page ...
+    if(io.cache.address[io.cache.page] == address) return io.cache.enable = 0, true;
+    //if it's not valid, try to use the other page ...
+    io.cache.page ^= 1;
+    if(io.cache.address[io.cache.page] == address) return io.cache.enable = 0, true;
+    //if it's not valid, try to load into the other page ...
+    if(io.cache.lock[io.cache.page]) io.cache.page ^= 1;
+    //if it's locked, try to load into the first page ...
+    if(io.cache.lock[io.cache.page]) return io.cache.enable = 0, false;
+  }
+  io.cache.preload = 0;
 
   io.cache.address[io.cache.page] = address;
   for(unsigned offset = 0; offset < 256; ++offset) {
     step(wait(address));
     programRAM[io.cache.page][offset]  = read(address++);
+    step(wait(address));
     programRAM[io.cache.page][offset] |= read(address++) << 8;
   }
   return io.cache.enable = 0, true;

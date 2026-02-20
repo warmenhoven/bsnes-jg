@@ -170,6 +170,7 @@ protected:
     struct Cache {
       uint8_t enable;
       uint8_t page;
+      uint8_t preload;
       uint8_t lock[2];
       uint32_t address[2];  //cache address is in bytes; so 24-bit
       uint32_t base;        //base address is also in bytes

@@ -239,7 +239,11 @@ void HitachiDSP::writeIO(unsigned address, uint8_t data) {
 
   case 0x7f48:
     io.cache.page = data & 1;
-    if(io.halt) io.cache.enable = 1;
+    if(io.halt) {
+      r.pb = io.cache.pb;
+      io.cache.preload = 1;
+      io.cache.enable = 1;
+    }
     return;
 
   case 0x7f49: io.cache.base = (io.cache.base & 0xffff00) | data <<  0; return;
