@@ -1,3 +1,11 @@
+Version 2.1.0
+-------------
+ - Update to SameBoy 1.0.2
+ - Doxygen updates
+ - Add support for new CC92/PF94 competition dumps
+ - Improved multitap game database
+ - More accurate CX4 cache behaviour and bus timing
+
 Version 2.0.2
 -------------
  - Update to SameBoy 1.0.1
