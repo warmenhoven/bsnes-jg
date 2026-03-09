@@ -70,8 +70,8 @@ LIBS += $(LIBS_SAMPLERATE)
 EXT := cpp
 
 # Example dependencies
-INCLUDES_BIN = $(INCLUDES_JG) $(CFLAGS_SDL2) $(CFLAGS_SAMPLERATE)
-LIBS_BIN = $(LIBS_SDL2) $(LIBS_SAMPLERATE)
+INCLUDES_BIN = $(INCLUDES_JG) $(CFLAGS_SDL3) $(CFLAGS_SAMPLERATE)
+LIBS_BIN = $(LIBS_SDL3) $(LIBS_SAMPLERATE)
 
 # TODO: Use -Wstrict-overflow=5 which is the highest level
 WARNINGS_MIN := $(WARNINGS_DEF) -Wformat=2 -Wstrict-overflow=2

@@ -143,7 +143,7 @@ void GB_remove_cheat(GB_gameboy_t *gb, const GB_cheat_t *cheat)
 
 void GB_remove_all_cheats(GB_gameboy_t *gb)
 {
-    while (gb->cheats) {
+    while (gb->cheat_count) {
         GB_remove_cheat(gb, gb->cheats[0]);
     }
 }
@@ -155,8 +155,15 @@ const GB_cheat_t *GB_import_cheat(GB_gameboy_t *gb, const char *cheat, const cha
     uint8_t dummy;
     /* GameShark */
     if (strlen(cheat) == 8) {
+#ifdef _WIN32
+        // The hh modifier is not supported on old MSVCRT, it's completely ignored
+        uint32_t bank = 0;
+        uint32_t value = 0;
+#pragma GCC diagnostic ignored "-Wformat"
+#else
         uint8_t bank;
         uint8_t value;
+#endif
         uint16_t address;
         if (sscanf(cheat, "%02hhx%02hhx%04hx%c", &bank, &value, &address, &dummy) == 3) {
             address = __builtin_bswap16(address);
@@ -178,8 +185,13 @@ const GB_cheat_t *GB_import_cheat(GB_gameboy_t *gb, const char *cheat, const cha
         stripped_cheat[7] = stripped_cheat[8];
         stripped_cheat[8] = 0;
         
+#ifdef _WIN32
+        uint32_t old_value = 0;
+        uint32_t value = 0;
+#else
         uint8_t old_value;
         uint8_t value;
+#endif
         uint16_t address;
         if (strlen(stripped_cheat) != 8 && strlen(stripped_cheat) != 6) {
             return NULL;
@@ -277,16 +289,20 @@ int GB_load_cheats(GB_gameboy_t *gb, const char *path, bool replace_existing)
     
     uint32_t magic = 0;
     uint32_t struct_size = 0;
-    fread(&magic, sizeof(magic), 1, f);
-    fread(&struct_size, sizeof(struct_size), 1, f);
+    if (fread(&magic, sizeof(magic), 1, f) != 1) {
+        goto error;
+    }
+    if (fread(&struct_size, sizeof(struct_size), 1, f) != 1) {
+        goto error;
+    }
     if (magic != LE32(CHEAT_MAGIC) && magic != BE32(CHEAT_MAGIC)) {
         GB_log(gb, "The file is not a SameBoy cheat database");
-        return -1;
+        goto error;
     }
     
     if (struct_size != sizeof(GB_cheat_t)) {
         GB_log(gb, "This cheat database is not compatible with this version of SameBoy");
-        return -1;
+        goto error;
     }
     
     // Remove all cheats first
@@ -295,7 +311,7 @@ int GB_load_cheats(GB_gameboy_t *gb, const char *path, bool replace_existing)
     }
     
     GB_cheat_t cheat;
-    while (fread(&cheat, sizeof(cheat), 1, f)) {
+    while (fread(&cheat, sizeof(cheat), 1, f) == 1) {
         if (magic != CHEAT_MAGIC) {
             cheat.address = __builtin_bswap16(cheat.address);
             cheat.bank = __builtin_bswap16(cheat.bank);
@@ -304,7 +320,12 @@ int GB_load_cheats(GB_gameboy_t *gb, const char *path, bool replace_existing)
         GB_add_cheat(gb, cheat.description, cheat.address, cheat.bank, cheat.value, cheat.old_value, cheat.use_old_value, cheat.enabled);
     }
     
+    fclose(f);
     return 0;
+
+error: 
+    fclose(f);
+    return -1;
 }
 
 int GB_save_cheats(GB_gameboy_t *gb, const char *path)

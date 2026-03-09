@@ -1,7 +1,7 @@
 Example libbsnes implementation
 -------------------------------
 This is a very basic example of how to use libbsnes. To build, you will require
-libbsnes, libsamplerate, and SDL2 to be installed in your environment.
+libbsnes, libsamplerate, and SDL3 to be installed in your environment.
 
 Building
 --------
