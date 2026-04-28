@@ -25,6 +25,9 @@
 
 #include <jg/jg.h>
 #include <jg/jg_snes.h>
+#if JG_VERSION_NUMBER < 10100
+jg_inputinfo_t* jg_get_inputlist(size_t *num);
+#endif
 
 #include "bsnes.hpp"
 
@@ -36,6 +39,7 @@
 #define FRAMERATE_PAL 50
 #define CHANNELS 2
 #define NUMINPUTS 5
+#define TOTALINPUTS 11
 
 #define ASPECT_NTSC 8.0 / 7.0
 #define ASPECT_PAL 7375000.0 / 5320342.5
@@ -81,6 +85,7 @@ static jg_fileinfo_t addoninfo;
 static jg_fileinfo_t gameinfo;
 static jg_fileinfo_t sufamiinfo;
 static jg_inputinfo_t inputinfo[NUMINPUTS];
+static jg_inputinfo_t inputlist[TOTALINPUTS];
 static jg_inputstate_t *input_device[NUMINPUTS];
 
 // Emulator settings
@@ -217,6 +222,7 @@ static int hmult = 2;
 static int vmult = 1;
 static int ss_offset_x = 0;
 static int ss_offset_y = 0;
+static int inputlist_built = 0;
 static unsigned numplugged = 2;
 
 static uint8_t addon = 0;
@@ -935,6 +941,19 @@ jg_audioinfo_t* jg_get_audioinfo(void) {
 
 jg_inputinfo_t* jg_get_inputinfo(int port) {
     return &inputinfo[port];
+}
+
+jg_inputinfo_t* jg_get_inputlist(size_t *num) {
+    if (!inputlist_built) {
+        for (size_t i = 0; i < 8; ++i)
+            inputlist[i] = jg_snes_inputinfo(i, JG_SNES_PAD);
+        inputlist[8] = jg_snes_inputinfo(0, JG_SNES_MOUSE);
+        inputlist[9] = jg_snes_inputinfo(0, JG_SNES_SUPERSCOPE);
+        inputlist[10] = jg_snes_inputinfo(0, JG_SNES_JUSTIFIER);
+        inputlist_built = 1;
+    }
+    *num = TOTALINPUTS;
+    return inputlist;
 }
 
 jg_setting_t* jg_get_settings(size_t *numsettings) {
