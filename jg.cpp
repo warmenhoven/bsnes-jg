@@ -817,6 +817,7 @@ int jg_game_load(void) {
     }
     else {
         superFamicom.location = std::string(gameinfo.path);
+        addon = 0;
     }
 
     if (settings_bsnes[REGION].val == 1)
@@ -824,8 +825,10 @@ int jg_game_load(void) {
     else if (settings_bsnes[REGION].val == 2)
         Bsnes::setRegion(Bsnes::Region::PAL);
 
-    if (!Bsnes::load())
-      jg_cb_log(JG_LOG_ERR, "Failed to load ROM\n");
+    if (!Bsnes::load()) {
+        jg_cb_log(JG_LOG_ERR, "Failed to load ROM\n");
+        return 0;
+    }
 
     aspectRatio();
 
