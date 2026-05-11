@@ -772,6 +772,10 @@ std::string SuperFamicom::board() const {
   //Tengai Makyou Zero (fan translation)
   if((board.rfind("SPC7110-") == 0) && data.size() == 0x700000) board = "EX" + board;
 
+  //Breath of Fire Definitive Edition - the patch writes the header byte as
+  //SDD1 but the game is not SDD1. Override this and set to LOROM-RAM.
+  if(title() == "Breath of Fire" && board == "SDD1-RAM") board = "LOROM-RAM";
+
   return board;
 }
 
