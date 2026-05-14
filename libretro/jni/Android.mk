@@ -14,6 +14,7 @@ endif
 
 include $(CLEAR_VARS)
 LOCAL_MODULE    := retro
+LOCAL_ARM_MODE  := arm
 LOCAL_SRC_FILES := $(SOURCES_C) $(SOURCES_CXX)
 LOCAL_CFLAGS    := $(COREFLAGS)
 LOCAL_LDFLAGS   := -Wl,-version-script=$(ROOT_DIR)/libretro/link.T
