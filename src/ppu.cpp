@@ -1232,14 +1232,14 @@ void PPU::Background::fetchNameTable() {
 void PPU::Background::fetchOffset(unsigned y) {
   if(ppu.vcounter() == 0) return;
 
-  unsigned characterIndex = ppu.hcounter() >> 5 << hires();
+  unsigned characterIndex = ppu.hcounter() >> 5;
   unsigned x = characterIndex << 3;
 
   unsigned hoffset = x + (io.hoffset & ~7);
   unsigned voffset = y + (io.voffset);
 
   unsigned vtiles = 3 + io.tileSize;
-  unsigned htiles = !hires() ? vtiles : 4;
+  unsigned htiles = !hires() ? vtiles : 3;
 
   unsigned htile = hoffset >> htiles;
   unsigned vtile = voffset >> vtiles;

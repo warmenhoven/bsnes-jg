@@ -2,7 +2,7 @@
  * bsnes-jg - Super Nintendo emulator
  *
  * Copyright (C) 2004-2020 byuu
- * Copyright (C) 2020-2024 Rupert Carmichael
+ * Copyright (C) 2020-2026 Rupert Carmichael
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include <jg/jg_snes.h>
 #if JG_VERSION_NUMBER < 10100
 jg_inputinfo_t* jg_get_inputlist(size_t *num);
+jg_setting_t* jg_get_dips(size_t *num);
 #endif
 
 #include "bsnes.hpp"
@@ -64,11 +65,11 @@ static jg_videoinfo_t vidinfo = {
     VIDEO_WIDTH << 1,           // wmax
     (VIDEO_HEIGHT + 8) << 1,    // hmax
     VIDEO_WIDTH,                // w
-    VIDEO_HEIGHT,               // h
+    VIDEO_HEIGHT - 16,          // h
     0,                          // x
-    0,                          // y
+    8,                          // y
     VIDEO_WIDTH << 2,           // p
-    ASPECT_NTSC,                // aspect
+    (VIDEO_WIDTH * ASPECT_NTSC) / (VIDEO_HEIGHT - 16), // aspect
     NULL
 };
 
@@ -962,6 +963,11 @@ jg_inputinfo_t* jg_get_inputlist(size_t *num) {
 jg_setting_t* jg_get_settings(size_t *numsettings) {
     *numsettings = sizeof(settings_bsnes) / sizeof(jg_setting_t);
     return settings_bsnes;
+}
+
+jg_setting_t* jg_get_dips(size_t *num) {
+    *num = 0;
+    return NULL;
 }
 
 void jg_setup_video(void) {
