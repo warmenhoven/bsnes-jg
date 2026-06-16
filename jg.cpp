@@ -953,6 +953,12 @@ void jg_media_select(void) {
 void jg_media_insert(void) {
 }
 
+void jg_media_mount(unsigned) {
+}
+
+void jg_media_set(unsigned) {
+}
+
 void jg_cheat_clear(void) {
     Bsnes::cheatsClear();
 }
@@ -1009,6 +1015,10 @@ jg_setting_t* jg_get_settings(size_t *numsettings) {
 
 jg_setting_t* jg_get_dips(size_t *num) {
     *num = 0;
+    return NULL;
+}
+
+jg_mediainfo_t* jg_get_mediainfo(void) {
     return NULL;
 }
 
