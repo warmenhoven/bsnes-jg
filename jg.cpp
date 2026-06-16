@@ -55,6 +55,12 @@ static jg_cb_frametime_t jg_cb_frametime;
 static jg_cb_log_t jg_cb_log;
 static jg_cb_rumble_t jg_cb_rumble;
 
+#if JG_VERSION_NUMBER >= 10100
+static void *udata_audio;
+static void *udata_frametime;
+static void *udata_rumble;
+#endif
+
 static jg_coreinfo_t coreinfo = {
     "bsnes", "bsnes-jg", JG_VERSION, "snes", NUMINPUTS, 0
 };
@@ -527,7 +533,11 @@ static void videoFrame(const void*, unsigned w, unsigned h, unsigned pitch) {
 }
 
 static void audioFrame(const void*, size_t numsamps) {
+#if JG_VERSION_NUMBER >= 10100
+    jg_cb_audio(udata_audio, numsamps);
+#else
     jg_cb_audio(numsamps);
+#endif
 }
 
 static int pollGamepad(const void *, unsigned port, unsigned) {
@@ -749,6 +759,17 @@ static bool loadRom(void*, unsigned id) {
 }
 
 // Jolly Good API Calls
+#if JG_VERSION_NUMBER >= 10100
+void jg_set_cb_audio(jg_cb_audio_t func, void *ud) {
+    jg_cb_audio = func;
+    udata_audio = ud;
+}
+
+void jg_set_cb_frametime(jg_cb_frametime_t func, void *ud) {
+    jg_cb_frametime = func;
+    udata_frametime = ud;
+}
+#else
 void jg_set_cb_audio(jg_cb_audio_t func) {
     jg_cb_audio = func;
 }
@@ -756,14 +777,22 @@ void jg_set_cb_audio(jg_cb_audio_t func) {
 void jg_set_cb_frametime(jg_cb_frametime_t func) {
     jg_cb_frametime = func;
 }
+#endif
 
 void jg_set_cb_log(jg_cb_log_t func) {
     jg_cb_log = func;
 }
 
+#if JG_VERSION_NUMBER >= 10100
+void jg_set_cb_rumble(jg_cb_rumble_t func, void *ud) {
+    jg_cb_rumble = func;
+    udata_rumble = ud;
+}
+#else
 void jg_set_cb_rumble(jg_cb_rumble_t func) {
     jg_cb_rumble = func;
 }
+#endif
 
 int jg_init(void) {
     // Set callbacks
@@ -878,10 +907,18 @@ int jg_game_load(void) {
     // Audio and timing adjustments
     if (Bsnes::getRegion() == Bsnes::Region::PAL) {
         audinfo.spf = (SAMPLERATE / FRAMERATE_PAL) * CHANNELS;
+#if JG_VERSION_NUMBER >= 10100
+        jg_cb_frametime(udata_frametime, TIMING_PAL);
+#else
         jg_cb_frametime(TIMING_PAL);
+#endif
     }
     else {
+#if JG_VERSION_NUMBER >= 10100
+        jg_cb_frametime(udata_frametime, TIMING_NTSC);
+#else
         jg_cb_frametime(TIMING_NTSC);
+#endif
     }
 
     // Power up!
@@ -1034,7 +1071,11 @@ void jg_setup_video(void) {
 void jg_setup_audio(void) {
     Bsnes::setAudioSpec({double(SAMPLERATE), audinfo.spf,
         unsigned(settings_bsnes[RSQUAL].val),
+#if JG_VERSION_NUMBER >= 10100
+        (float*)audinfo.buf, udata_audio, &audioFrame});
+#else
         (float*)audinfo.buf, nullptr, &audioFrame});
+#endif
 }
 
 void jg_set_inputstate(jg_inputstate_t *ptr, int port) {
