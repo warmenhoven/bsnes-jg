@@ -260,6 +260,10 @@ static jg_biosinfo_t bioslist[] = {
       "49c898b60d0f15e90d0ba780dd12f366", 0, 0 },
 };
 
+static jg_systeminfo_t systemlist[] = {
+    { "snes", "Super Famicom/Super Nintendo Entertainment System", "sfc,smc" },
+};
+
 // State data
 static std::vector<uint8_t> state;
 
@@ -1014,6 +1018,11 @@ void jg_rehash(void) {
 }
 
 void jg_data_push(uint32_t, int, const void*, size_t) {
+}
+
+jg_systeminfo_t* jg_get_systemlist(size_t *num) {
+    *num = sizeof(systemlist) / sizeof(jg_systeminfo_t);
+    return systemlist;
 }
 
 jg_coreinfo_t* jg_get_coreinfo(const char*) {
