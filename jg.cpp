@@ -62,7 +62,7 @@ static void *udata_rumble;
 #endif
 
 static jg_coreinfo_t coreinfo = {
-    "bsnes", "bsnes-jg", JG_VERSION, "snes", NUMINPUTS, 0
+    "bsnes", "bsnes-jg", JG_VERSION, "snes", NUMINPUTS, JG_HINT_CHEATS
 };
 
 static jg_videoinfo_t vidinfo = {

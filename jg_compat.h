@@ -14,6 +14,8 @@ Include this header conditionally:
 extern "C" {
 #endif
 
+#define JG_HINT_CHEATS 0x00000400
+
 typedef struct _jg_systeminfo_t {
     const char *name;
     const char *fname;
