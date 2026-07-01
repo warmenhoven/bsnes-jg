@@ -198,8 +198,6 @@ BUILD_EXAMPLE = $(call COMPILE_CXX, $(FLAGS) $(WARNINGS) $(CPPFLAGS_BIN) \
 BUILD_JG = $(call COMPILE_CXX, $(FLAGS) $(WARNINGS) $(INCLUDES_JG) $(CFLAGS_JG))
 BUILD_MAIN = $(call COMPILE_CXX, $(FLAGS) $(WARNINGS) $(INCLUDES))
 
-include $(SOURCEDIR)/mk/rules.mk
-
 .PHONY: $(PHONY)
 
 all: $(TARGET)
@@ -254,3 +252,5 @@ install-docs::
 	cp $(DEPDIR)/gb/LICENSE $(DESTDIR)$(DOCDIR)/LICENSE-gb
 	cp $(DEPDIR)/libco/LICENSE $(DESTDIR)$(DOCDIR)/LICENSE-libco
 	cp $(DEPDIR)/snes_spc/LICENSE $(DESTDIR)$(DOCDIR)/LICENSE-spc
+
+include $(SOURCEDIR)/mk/rules.mk
