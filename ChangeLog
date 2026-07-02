@@ -1,3 +1,10 @@
+Version 2.1.1
+-------------
+ - Update to SameBoy 1.0.3
+ - Fix horizontal offset in high-resolution offset-by-tile mode
+ - libbsnes example ported to SDL3
+ - Support for The Jolly Good API 2.0.0
+
 Version 2.1.0
 -------------
  - Update to SameBoy 1.0.2
