@@ -106,6 +106,7 @@ struct PPU : Thread, PPUcounter {
   void cycleBackgroundAbove();
   void cycleRenderPixel();
   template<unsigned> void cycle();
+  template<unsigned Fetch> alwaysinline void cycleGroup8();
 
   void latchCounters(unsigned, unsigned);
   void latchCounters();

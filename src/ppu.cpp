@@ -83,21 +83,10 @@ void PPU::main() {
   //H =   28
   cycles04(  28);
   cycles32(  32);
-  cycles64(  64);
-  cycles64( 128);
-  cycles64( 192);
-  cycles64( 256);
-  cycles64( 320);
-  cycles64( 384);
-  cycles64( 448);
-  cycles64( 512);
-  cycles64( 576);
-  cycles64( 640);
-  cycles64( 704);
-  cycles64( 768);
-  cycles64( 832);
-  cycles64( 896);
-  cycles64( 960);
+  //H=64..1022 is 30 identical 32-clock groups; roll them into a loop.
+  for(unsigned n = 0; n < 30; ++n) {
+    cycleGroup8<0>(); cycleGroup8<2>(); cycleGroup8<4>(); cycleGroup8<6>();
+  }
   cycles32(1024);
   cycles16(1056);
   cycles08(1072);
@@ -223,6 +212,14 @@ void PPU::cycleRenderPixel() {
   obj.run();
   window.run();
   screen.run();
+}
+
+template<unsigned Fetch>
+void PPU::cycleGroup8() {
+  cycleObjectEvaluate();  cycleBackgroundFetch<Fetch>();      cycleBackgroundBelow(); step();
+  cycleBackgroundAbove(); cycleRenderPixel();                                         step();
+                          cycleBackgroundFetch<Fetch + 1>();  cycleBackgroundBelow(); step();
+  cycleBackgroundAbove(); cycleRenderPixel();                                         step();
 }
 
 template<unsigned Cycle>
