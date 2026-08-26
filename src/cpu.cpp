@@ -20,6 +20,7 @@
 
 #include <string>
 
+#include "function.hpp"
 #include "serializer.hpp"
 #include "controller.hpp"
 #include "coprocessor/icd.hpp"

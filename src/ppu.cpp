@@ -21,6 +21,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "function.hpp"
 #include "serializer.hpp"
 #include "cpu.hpp"
 #include "memory.hpp"

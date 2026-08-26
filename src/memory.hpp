@@ -21,9 +21,8 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <string>
-
-#include "function.hpp"
 
 namespace SuperFamicom {
 

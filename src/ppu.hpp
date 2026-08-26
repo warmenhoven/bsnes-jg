@@ -20,7 +20,8 @@
 
 #pragma once
 
-#include "function.hpp"
+#include <functional>
+
 #include "sfc.hpp"
 #include "system.hpp"
 

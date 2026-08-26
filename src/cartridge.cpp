@@ -43,6 +43,7 @@
 #include "coprocessor/st0010.hpp"
 #include "coprocessor/superfx.hpp"
 #include "bsmemory.hpp"
+#include "function.hpp"
 #include "emulator.hpp"
 #include "heuristics.hpp"
 #include "markup.hpp"

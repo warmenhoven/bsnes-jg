@@ -23,8 +23,8 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 
-#include "function.hpp"
 #include "serializer.hpp"
 
 namespace Processor {
