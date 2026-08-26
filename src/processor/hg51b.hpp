@@ -195,7 +195,7 @@ protected:
   } io;
 
   uint32_t stack[8];
-  bfunction<void ()> instructionTable[65536];
+  std::function<void ()> instructionTable[65536];
 };
 
 }

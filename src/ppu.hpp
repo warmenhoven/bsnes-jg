@@ -61,7 +61,7 @@ struct PPUcounter {
   inline void reset();
   void serialize(serializer&);
 
-  bfunction<void ()> scanline;
+  std::function<void ()> scanline;
 
 private:
   inline void tickScanline();

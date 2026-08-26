@@ -40,8 +40,8 @@ Bus::~Bus() {
 
 void Bus::reset() {
   for(unsigned id = 0; id < 256; ++id) {
-    reader[id].reset();
-    writer[id].reset();
+    reader[id] = nullptr;
+    writer[id] = nullptr;
     counter[id] = 0;
   }
 
@@ -56,8 +56,8 @@ void Bus::reset() {
 }
 
 unsigned Bus::map(
-  const bfunction<uint8_t (unsigned, uint8_t)>& read,
-  const bfunction<void  (unsigned, uint8_t)>& write,
+  const std::function<uint8_t (unsigned, uint8_t)>& read,
+  const std::function<void  (unsigned, uint8_t)>& write,
   const std::string& addr, unsigned size, unsigned base, unsigned mask
 ) {
   unsigned id = 1;
@@ -98,8 +98,8 @@ unsigned Bus::map(
         for(unsigned addr3 = addrRange[0]; addr3 <= addrRange[1]; ++addr3) {
           unsigned pid = lookup[bank2 << 16 | addr3];
           if(pid && --counter[pid] == 0) {
-            reader[pid].reset();
-            writer[pid].reset();
+            reader[pid] = nullptr;
+            writer[pid] = nullptr;
           }
 
           unsigned offset = reduce(bank2 << 16 | addr3, mask);
@@ -145,8 +145,8 @@ void Bus::unmap(const std::string& addr) {
         for(unsigned addr3 = addrRange[0]; addr3 <= addrRange[1]; ++addr3) {
           unsigned pid = lookup[bank2 << 16 | addr3];
           if(pid && --counter[pid] == 0) {
-            reader[pid].reset();
-            writer[pid].reset();
+            reader[pid] = nullptr;
+            writer[pid] = nullptr;
           }
 
           lookup[bank2 << 16 | addr3] = 0;

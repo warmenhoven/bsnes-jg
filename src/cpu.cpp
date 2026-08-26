@@ -1144,26 +1144,26 @@ void CPU::power(bool reset) {
   Thread::create(Enter, system.cpuFrequency());
   coprocessors.clear();
   PPUcounter::reset();
-  PPUcounter::scanline = {&CPU::scanline, this};
+  PPUcounter::scanline = memfn(&CPU::scanline, this);
 
-  bfunction<uint8_t (unsigned, uint8_t)> reader;
-  bfunction<void  (unsigned, uint8_t)> writer;
+  std::function<uint8_t (unsigned, uint8_t)> reader;
+  std::function<void  (unsigned, uint8_t)> writer;
 
-  reader = {&CPU::readRAM, this};
-  writer = {&CPU::writeRAM, this};
+  reader = memfn(&CPU::readRAM, this);
+  writer = memfn(&CPU::writeRAM, this);
   bus.map(reader, writer, "00-3f,80-bf:0000-1fff", 0x2000);
   bus.map(reader, writer, "7e-7f:0000-ffff", 0x20000);
 
-  reader = {&CPU::readAPU, this};
-  writer = {&CPU::writeAPU, this};
+  reader = memfn(&CPU::readAPU, this);
+  writer = memfn(&CPU::writeAPU, this);
   bus.map(reader, writer, "00-3f,80-bf:2140-217f");
 
-  reader = {&CPU::readCPU, this};
-  writer = {&CPU::writeCPU, this};
+  reader = memfn(&CPU::readCPU, this);
+  writer = memfn(&CPU::writeCPU, this);
   bus.map(reader, writer, "00-3f,80-bf:2180-2183,4016-4017,4200-421f");
 
-  reader = {&CPU::readDMA, this};
-  writer = {&CPU::writeDMA, this};
+  reader = memfn(&CPU::readDMA, this);
+  writer = memfn(&CPU::writeDMA, this);
   bus.map(reader, writer, "00-3f,80-bf:4300-437f");
 
   if(!reset) random.array(wram, sizeof(wram));

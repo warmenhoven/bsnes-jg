@@ -100,7 +100,7 @@ private:
 
   void loadMemory(Memory&, std::string);
   template<typename T> unsigned loadMap(std::string, T&);
-  unsigned loadMap(std::string, const bfunction<uint8_t (unsigned, uint8_t)>&, const bfunction<void (unsigned, uint8_t)>&);
+  unsigned loadMap(std::string, const std::function<uint8_t (unsigned, uint8_t)>&, const std::function<void (unsigned, uint8_t)>&);
 
   void saveMemory(Memory&, std::string);
 
