@@ -43,6 +43,7 @@
 #include "coprocessor/st0010.hpp"
 #include "coprocessor/superfx.hpp"
 #include "bsmemory.hpp"
+#include "function.hpp"
 #include "emulator.hpp"
 #include "heuristics.hpp"
 #include "markup.hpp"
@@ -196,13 +197,13 @@ unsigned Cartridge::loadMap(std::string map, T& memory) {
   unsigned mask = strmask.empty() ? 0 : std::stoi(strmask, nullptr, 16);
   if(size == 0) size = memory.size();
   if(size == 0) return 0; //does this ever actually occur? - Yes! Sufami Turbo.
-  return bus.map({&T::read, &memory}, {&T::write, &memory}, addr, size, base, mask);
+  return bus.map(memfn(&T::read, &memory), memfn(&T::write, &memory), addr, size, base, mask);
 }
 
 unsigned Cartridge::loadMap(
   std::string map,
-  const bfunction<uint8_t (unsigned, uint8_t)>& reader,
-  const bfunction<void  (unsigned, uint8_t)>& writer
+  const std::function<uint8_t (unsigned, uint8_t)>& reader,
+  const std::function<void  (unsigned, uint8_t)>& writer
 ) {
   std::string addr = BML::search(map, {"map", "address"});
   std::string strsize = BML::search(map, {"map", "size"});
@@ -434,7 +435,7 @@ bool Cartridge::load() {
 
       //Game Boy core loads data through ICD interface
       for (std::string map : BML::searchList(p, "map")) {
-        loadMap(map, {&ICD::readIO, &icd}, {&ICD::writeIO, &icd});
+        loadMap(map, memfn(&ICD::readIO, &icd), memfn(&ICD::writeIO, &icd));
       }
     }
     //processor(identifier=MCC)
@@ -444,14 +445,14 @@ bool Cartridge::load() {
       std::string pmap = BML::searchNode(p, {"processor", "map"});
 
       if (!pmap.empty()) {
-        loadMap(pmap, {&MCC::read, &mcc}, {&MCC::write, &mcc});
+        loadMap(pmap, memfn(&MCC::read, &mcc), memfn(&MCC::write, &mcc));
       }
 
       std::string mcu = BML::searchNode(p, {"processor", "mcu"});
 
       if (!mcu.empty()) {
         for (std::string map : BML::searchList(mcu, "map")) {
-          loadMap(map, {&MCC::mcuRead, &mcc}, {&MCC::mcuWrite, &mcc});
+          loadMap(map, memfn(&MCC::mcuRead, &mcc), memfn(&MCC::mcuWrite, &mcc));
         }
 
         for (std::string& m : BML::searchList(mcu, "memory")) {
@@ -478,14 +479,14 @@ bool Cartridge::load() {
       std::string pmap = BML::searchNode(p, {"processor", "map"});
 
       if (!pmap.empty()) {
-        loadMap(pmap, {&SA1::readIOCPU, &sa1}, {&SA1::writeIOCPU, &sa1});
+        loadMap(pmap, memfn(&SA1::readIOCPU, &sa1), memfn(&SA1::writeIOCPU, &sa1));
       }
 
       std::string mcu = BML::searchNode(p, {"processor", "mcu"});
 
       if (!mcu.empty()) {
         for (std::string map : BML::searchList(mcu, "map")) {
-          loadMap(map, {&SA1::ROM::readCPU, &sa1.rom}, {&SA1::ROM::writeCPU, &sa1.rom});
+          loadMap(map, memfn(&SA1::ROM::readCPU, &sa1.rom), memfn(&SA1::ROM::writeCPU, &sa1.rom));
         }
 
         for (std::string& m : BML::searchList(mcu, "memory")) {
@@ -509,13 +510,13 @@ bool Cartridge::load() {
             has.SRAM = true;
             loadMemory(sa1.bwram, m);
             for (std::string map : BML::searchList(m, "map")) {
-              loadMap(map, {&SA1::BWRAM::readCPU, &sa1.bwram}, {&SA1::BWRAM::writeCPU, &sa1.bwram});
+              loadMap(map, memfn(&SA1::BWRAM::readCPU, &sa1.bwram), memfn(&SA1::BWRAM::writeCPU, &sa1.bwram));
             }
           }
           else if (content == "Internal") {
             loadMemory(sa1.iram, m);
             for (std::string map : BML::searchList(m, "map")) {
-              loadMap(map, {&SA1::IRAM::readCPU, &sa1.iram}, {&SA1::IRAM::writeCPU, &sa1.iram});
+              loadMap(map, memfn(&SA1::IRAM::readCPU, &sa1.iram), memfn(&SA1::IRAM::writeCPU, &sa1.iram));
             }
           }
         }
@@ -539,13 +540,13 @@ bool Cartridge::load() {
 
       std::string pmap = BML::searchNode(p, {"processor", "map"});
       if (!pmap.empty()) {
-        loadMap(pmap, {&Event::read, &event}, {&Event::write, &event});
+        loadMap(pmap, memfn(&Event::read, &event), memfn(&Event::write, &event));
       }
 
       std::string mcu = BML::searchNode(p, {"processor", "mcu"});
       if (!mcu.empty()) {
         for (std::string map : BML::searchList(mcu, "map")) {
-          loadMap(map, {&Event::mcuRead, &event}, {&Event::mcuWrite, &event});
+          loadMap(map, memfn(&Event::mcuRead, &event), memfn(&Event::mcuWrite, &event));
         }
 
         unsigned evt_offset = 0;
@@ -587,7 +588,7 @@ bool Cartridge::load() {
       std::string pmap = BML::searchNode(p, {"processor", "map"});
 
       if (!pmap.empty()) {
-        loadMap(pmap, {&SuperFX::readIO, &superfx}, {&SuperFX::writeIO, &superfx});
+        loadMap(pmap, memfn(&SuperFX::readIO, &superfx), memfn(&SuperFX::writeIO, &superfx));
       }
 
       for (std::string& m : BML::searchList(p, "memory")) {
@@ -625,7 +626,7 @@ bool Cartridge::load() {
       std::string pmap = BML::searchNode(p, {"processor", "map"});
 
       if (!pmap.empty()) {
-        loadMap(pmap, {&ArmDSP::read, &armdsp}, {&ArmDSP::write, &armdsp});
+        loadMap(pmap, memfn(&ArmDSP::read, &armdsp), memfn(&ArmDSP::write, &armdsp));
       }
 
       for (std::string& m : BML::searchList(p, "memory")) {
@@ -690,14 +691,14 @@ bool Cartridge::load() {
         if (type == "ROM" && content == "Program") {
           loadMemory(hitachidsp.rom, m);
           for (std::string map : BML::searchList(m, "map")) {
-            loadMap(map, {&HitachiDSP::readROM, &hitachidsp}, {&HitachiDSP::writeROM, &hitachidsp});
+            loadMap(map, memfn(&HitachiDSP::readROM, &hitachidsp), memfn(&HitachiDSP::writeROM, &hitachidsp));
           }
         }
         else if (type == "RAM" && content == "Save") {
           has.SRAM = true;
           loadMemory(hitachidsp.ram, m);
           for (std::string map : BML::searchList(m, "map")) {
-            loadMap(map, {&HitachiDSP::readRAM, &hitachidsp}, {&HitachiDSP::writeRAM, &hitachidsp});
+            loadMap(map, memfn(&HitachiDSP::readRAM, &hitachidsp), memfn(&HitachiDSP::writeRAM, &hitachidsp));
           }
         }
       }
@@ -707,14 +708,14 @@ bool Cartridge::load() {
         std::string pmap = BML::searchNode(p, {"processor", "map"});
 
         if (!pmap.empty()) {
-          loadMap(pmap, {&Cx4::read, &cx4}, {&Cx4::write, &cx4});
+          loadMap(pmap, memfn(&Cx4::read, &cx4), memfn(&Cx4::write, &cx4));
         }
 
         for (std::string& m : memlist) {
           if (BML::search(m, {"memory", "type"}) == "RAM" &&
               BML::search(m, {"memory", "content"}) == "Data") {
             for (std::string map : BML::searchList(m, "map")) {
-              loadMap(map, {&Cx4::read, &cx4}, {&Cx4::write, &cx4});
+              loadMap(map, memfn(&Cx4::read, &cx4), memfn(&Cx4::write, &cx4));
             }
           }
         }
@@ -736,7 +737,7 @@ bool Cartridge::load() {
             }
             else if (type == "RAM") {
               for (std::string map : BML::searchList(m, "map")) {
-                loadMap(map, {&HitachiDSP::readDRAM, &hitachidsp}, {&HitachiDSP::writeDRAM, &hitachidsp});
+                loadMap(map, memfn(&HitachiDSP::readDRAM, &hitachidsp), memfn(&HitachiDSP::writeDRAM, &hitachidsp));
               }
             }
           }
@@ -747,7 +748,7 @@ bool Cartridge::load() {
         std::string pmap = BML::searchNode(p, {"processor", "map"});
 
         if (!pmap.empty()) {
-          loadMap(pmap, {&HitachiDSP::readIO, &hitachidsp}, {&HitachiDSP::writeIO, &hitachidsp});
+          loadMap(pmap, memfn(&HitachiDSP::readIO, &hitachidsp), memfn(&HitachiDSP::writeIO, &hitachidsp));
         }
       }
     }
@@ -799,21 +800,21 @@ bool Cartridge::load() {
         if (ident == "dsp1" || ident == "dsp1b") {
           has.DSP1 = true;
           if (!pmap.empty()) {
-            loadMap(pmap, {&DSP1::read, &dsp1}, {&DSP1::write, &dsp1});
+            loadMap(pmap, memfn(&DSP1::read, &dsp1), memfn(&DSP1::write, &dsp1));
           }
           foundDSP = 1;
         }
         else if (ident == "dsp2") {
           has.DSP2 = true;
           if (!pmap.empty()) {
-            loadMap(pmap, {&DSP2::read, &dsp2}, {&DSP2::write, &dsp2});
+            loadMap(pmap, memfn(&DSP2::read, &dsp2), memfn(&DSP2::write, &dsp2));
           }
           foundDSP = 1;
         }
         else if (ident == "dsp4") {
           has.DSP4 = true;
           if (!pmap.empty()) {
-            loadMap(pmap, {&DSP4::read, &dsp4}, {&DSP4::write, &dsp4});
+            loadMap(pmap, memfn(&DSP4::read, &dsp4), memfn(&DSP4::write, &dsp4));
           }
           foundDSP = 1;
         }
@@ -824,7 +825,7 @@ bool Cartridge::load() {
         necdsp.revision = NECDSP::Revision::uPD7725;
 
         if (!pmap.empty()) {
-          loadMap(pmap, {&NECDSP::read, &necdsp}, {&NECDSP::write, &necdsp});
+          loadMap(pmap, memfn(&NECDSP::read, &necdsp), memfn(&NECDSP::write, &necdsp));
         }
       }
     }
@@ -876,7 +877,7 @@ bool Cartridge::load() {
             if (BML::search(m, {"memory", "type"}) == "RAM" &&
                 BML::search(m, {"memory", "content"}) == "Data") {
               std::string mem = BML::searchNode(m, {"memory", "map"});
-              loadMap(mem, {&ST0010::read, &st0010}, {&ST0010::write, &st0010});
+              loadMap(mem, memfn(&ST0010::read, &st0010), memfn(&ST0010::write, &st0010));
             }
           }
         }
@@ -886,7 +887,7 @@ bool Cartridge::load() {
           if (BML::search(m, {"memory", "type"}) == "RAM" &&
               BML::search(m, {"memory", "content"}) == "Data") {
             for (std::string map : BML::searchList(m, "map")) {
-              loadMap(map, {&NECDSP::readRAM, &necdsp}, {&NECDSP::writeRAM, &necdsp});
+              loadMap(map, memfn(&NECDSP::readRAM, &necdsp), memfn(&NECDSP::writeRAM, &necdsp));
             }
           }
         }
@@ -896,7 +897,7 @@ bool Cartridge::load() {
         std::string pmap = BML::searchNode(p, {"processor", "map"});
 
         if (!pmap.empty()) {
-          loadMap(pmap, {&NECDSP::read, &necdsp}, {&NECDSP::write, &necdsp});
+          loadMap(pmap, memfn(&NECDSP::read, &necdsp), memfn(&NECDSP::write, &necdsp));
         }
       }
     }
@@ -906,14 +907,14 @@ bool Cartridge::load() {
       has.SPC7110 = true;
 
       for (std::string& m : BML::searchListShallow(p, "processor", "map")) {
-        loadMap(m, {&SPC7110::read, &spc7110}, {&SPC7110::write, &spc7110});
+        loadMap(m, memfn(&SPC7110::read, &spc7110), memfn(&SPC7110::write, &spc7110));
       }
 
       std::string mcu = BML::searchNode(p, {"processor", "mcu"});
 
       if (!mcu.empty()) {
         for (std::string& m : BML::searchList(mcu, "map")) {
-          loadMap(m, {&SPC7110::mcuromRead, &spc7110}, {&SPC7110::mcuromWrite, &spc7110});
+          loadMap(m, memfn(&SPC7110::mcuromRead, &spc7110), memfn(&SPC7110::mcuromWrite, &spc7110));
         }
 
         for (std::string& m : BML::searchList(mcu, "memory")) {
@@ -937,7 +938,7 @@ bool Cartridge::load() {
           has.SRAM = true;
           loadMemory(spc7110.ram, sram);
           for (std::string& m : BML::searchList(sram, "map")) {
-            loadMap(m, {&SPC7110::mcuramRead, &spc7110}, {&SPC7110::mcuramWrite, &spc7110});
+            loadMap(m, memfn(&SPC7110::mcuramRead, &spc7110), memfn(&SPC7110::mcuramWrite, &spc7110));
           }
         }
       }
@@ -949,14 +950,14 @@ bool Cartridge::load() {
       std::string pmap = BML::searchNode(p, {"processor", "map"});
 
       if (!pmap.empty()) {
-        loadMap(pmap, {&SDD1::ioRead, &sdd1}, {&SDD1::ioWrite, &sdd1});
+        loadMap(pmap, memfn(&SDD1::ioRead, &sdd1), memfn(&SDD1::ioWrite, &sdd1));
       }
 
       std::string mcu = BML::searchNode(p, {"processor", "mcu"});
 
       if (!mcu.empty()) {
         for (std::string map : BML::searchList(mcu, "map")) {
-          loadMap(map, {&SDD1::mcuRead, &sdd1}, {&SDD1::mcuWrite, &sdd1});
+          loadMap(map, memfn(&SDD1::mcuRead, &sdd1), memfn(&SDD1::mcuWrite, &sdd1));
         }
 
         for (std::string& m : BML::searchList(mcu, "memory")) {
@@ -972,7 +973,7 @@ bool Cartridge::load() {
       has.OBC1 = true;
 
       for (std::string map : BML::searchList(p, "map")) {
-        loadMap(map, {&OBC1::read, &obc1}, {&OBC1::write, &obc1});
+        loadMap(map, memfn(&OBC1::read, &obc1), memfn(&OBC1::write, &obc1));
       }
 
       for (std::string m : BML::searchList(p, "memory")) {
@@ -1070,7 +1071,7 @@ bool Cartridge::load() {
     /*std::string board_dip = BML::searchNode(board, {"dip"});
     if (!board_dip.empty()) {
       for (std::string map : BML::searchList(board_dip, "map")) {
-        loadMap(map, {&DIP::read, &dip}, {&DIP::write, &dip});
+        loadMap(map, memfn(&DIP::read, &dip), memfn(&DIP::write, &dip));
       }
     }*/
   }
@@ -1085,7 +1086,7 @@ bool Cartridge::load() {
       epsonrtc.initialize();
 
       std::string map = BML::searchNode(rtc, {"rtc", "map"});
-      loadMap(map, {&EpsonRTC::read, &epsonrtc}, {&EpsonRTC::write, &epsonrtc});
+      loadMap(map, memfn(&EpsonRTC::read, &epsonrtc), memfn(&EpsonRTC::write, &epsonrtc));
 
       Game::Memory file;
 
@@ -1105,7 +1106,7 @@ bool Cartridge::load() {
       sharprtc.initialize();
 
       std::string map = BML::searchNode(rtc, {"rtc", "map"});
-      loadMap(map, {&SharpRTC::read, &sharprtc}, {&SharpRTC::write, &sharprtc});
+      loadMap(map, memfn(&SharpRTC::read, &sharprtc), memfn(&SharpRTC::write, &sharprtc));
 
       Game::Memory file;
 
@@ -1124,7 +1125,7 @@ bool Cartridge::load() {
   if (openFileCallback(udata_v, "msu1/data.rom", msu1file)) {
     msu1file.clear();
     has.MSU1 = true;
-    bus.map({&MSU1::readIO, &msu1}, {&MSU1::writeIO, &msu1}, "00-3f,80-bf:2000-2007");
+    bus.map(memfn(&MSU1::readIO, &msu1), memfn(&MSU1::writeIO, &msu1), "00-3f,80-bf:2000-2007");
   }
 
   //Game Boy

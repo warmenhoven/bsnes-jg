@@ -23,6 +23,7 @@
 #include <exception>
 
 #include "arm7tdmi.hpp"
+#include "function.hpp"
 
 namespace Processor {
 

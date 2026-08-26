@@ -15,15 +15,12 @@ FLAGS_GB := -std=gnu11
 SRCDIR := $(SOURCEDIR)/src
 
 INCLUDES = -I$(SRCDIR)
-
-FLAGS_STATIC =
 INCLUDES_JG = -I$(SRCDIR)
 
 LINKER = $(CXX)
 
 LIBS = -lm
 LIBS_STATIC = -lstdc++
-
 LIBS_REQUIRES := samplerate
 
 DOCS := ChangeLog COPYING README

@@ -20,7 +20,8 @@
 
 #pragma once
 
-#include "function.hpp"
+#include <functional>
+
 #include "sfc.hpp"
 #include "system.hpp"
 
@@ -61,7 +62,7 @@ struct PPUcounter {
   inline void reset();
   void serialize(serializer&);
 
-  bfunction<void ()> scanline;
+  std::function<void ()> scanline;
 
 private:
   inline void tickScanline();
@@ -105,6 +106,7 @@ struct PPU : Thread, PPUcounter {
   void cycleBackgroundAbove();
   void cycleRenderPixel();
   template<unsigned> void cycle();
+  template<unsigned Fetch> alwaysinline void cycleGroup8();
 
   void latchCounters(unsigned, unsigned);
   void latchCounters();

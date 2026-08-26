@@ -26,8 +26,7 @@
 #include <jg/jg.h>
 #include <jg/jg_snes.h>
 #if JG_VERSION_NUMBER < 10100
-jg_inputinfo_t* jg_get_inputlist(size_t *num);
-jg_setting_t* jg_get_dips(size_t *num);
+#include "jg_compat.h"
 #endif
 
 #include "bsnes.hpp"
@@ -56,8 +55,14 @@ static jg_cb_frametime_t jg_cb_frametime;
 static jg_cb_log_t jg_cb_log;
 static jg_cb_rumble_t jg_cb_rumble;
 
+#if JG_VERSION_NUMBER >= 10100
+static void *udata_audio;
+static void *udata_frametime;
+static void *udata_rumble;
+#endif
+
 static jg_coreinfo_t coreinfo = {
-    "bsnes", "bsnes-jg", JG_VERSION, "snes", NUMINPUTS, 0
+    "bsnes", "bsnes-jg", JG_VERSION, "snes", NUMINPUTS, JG_HINT_CHEATS
 };
 
 static jg_videoinfo_t vidinfo = {
@@ -210,6 +215,53 @@ enum {
     HOTFIXES,
     RUNAHEAD,
     CMPTN_TIMER
+};
+
+// BIOS/Firmware Info
+static jg_biosinfo_t bioslist[] = {
+    { "dsp1.program.rom", "DSP1 Program ROM",
+      "ae209fbe789fbf11a48aea5ab1197321", 0, 0 },
+    { "dsp1.data.rom", "DSP1 Data ROM",
+      "3d81b45fa0c2aa8b852dfb1ece7c0971", 0, 0 },
+
+    { "dsp1b.program.rom", "DSP1B Program ROM",
+      "d10f446888e097cbf500f3f663cf4f6d", 0, 0 },
+    { "dsp1b.data.rom", "DSP1B Data ROM",
+      "1e3f568634a7d8284020dddc0ae905bc", 0, 0 },
+
+    { "dsp2.program.rom", "DSP2 Program ROM",
+      "aa6e5922a3ed5ded54f24247c11143c5", 0, 0 },
+    { "dsp2.data.rom", "DSP2 Data ROM",
+      "e9417e29223b139c3c4b635a2a3b8744", 0, 0 },
+
+    { "dsp3.program.rom", "DSP3 Program ROM",
+      "d99ca4562818d49cee1f242705bba6f8", 0, 0 },
+    { "dsp3.data.rom", "DSP4 Data ROM",
+      "0a81210c0a940b997dd9843281008ee6", 0, 0 },
+
+    { "dsp4.program.rom", "DSP4 Program ROM",
+      "a151023b948b90ffc23a5b594bb6fef2", 0, 0 },
+    { "dsp4.data.rom", "DSP4 Data ROM",
+      "ee4990879eb68e3cbca239c5bc20303d", 0, 0 },
+
+    { "st010.program.rom", "ST010 Program ROM",
+      "1d70019179a59a566a0bb5d3f2845544", 0, 0 },
+    { "st010.data.rom", "ST010 Data ROM",
+      "254d70762b6f59f99c27c395aba7d07d", 0, 0 },
+
+    { "st011.program.rom", "ST011 Program ROM",
+      "95222ebf1c0c2990bcf25db43743f032", 0, 0 },
+    { "st011.data.rom", "ST011 Data ROM",
+      "10bd3f4aa949737ab9836512c35bcc29", 0, 0 },
+
+    { "st018.program.rom", "ST018 Program ROM",
+      "dda40ccd57390c96e49d30a041f9a9e7", 0, 0 },
+    { "st018.data.rom", "ST018 Data ROM",
+      "49c898b60d0f15e90d0ba780dd12f366", 0, 0 },
+};
+
+static jg_systeminfo_t systemlist[] = {
+    { "snes", "Super Famicom/Super Nintendo Entertainment System", "sfc,smc" },
 };
 
 // State data
@@ -485,7 +537,11 @@ static void videoFrame(const void*, unsigned w, unsigned h, unsigned pitch) {
 }
 
 static void audioFrame(const void*, size_t numsamps) {
+#if JG_VERSION_NUMBER >= 10100
+    jg_cb_audio(udata_audio, numsamps);
+#else
     jg_cb_audio(numsamps);
+#endif
 }
 
 static int pollGamepad(const void *, unsigned port, unsigned) {
@@ -707,6 +763,17 @@ static bool loadRom(void*, unsigned id) {
 }
 
 // Jolly Good API Calls
+#if JG_VERSION_NUMBER >= 10100
+void jg_set_cb_audio(jg_cb_audio_t func, void *ud) {
+    jg_cb_audio = func;
+    udata_audio = ud;
+}
+
+void jg_set_cb_frametime(jg_cb_frametime_t func, void *ud) {
+    jg_cb_frametime = func;
+    udata_frametime = ud;
+}
+#else
 void jg_set_cb_audio(jg_cb_audio_t func) {
     jg_cb_audio = func;
 }
@@ -714,14 +781,22 @@ void jg_set_cb_audio(jg_cb_audio_t func) {
 void jg_set_cb_frametime(jg_cb_frametime_t func) {
     jg_cb_frametime = func;
 }
+#endif
 
 void jg_set_cb_log(jg_cb_log_t func) {
     jg_cb_log = func;
 }
 
+#if JG_VERSION_NUMBER >= 10100
+void jg_set_cb_rumble(jg_cb_rumble_t func, void *ud) {
+    jg_cb_rumble = func;
+    udata_rumble = ud;
+}
+#else
 void jg_set_cb_rumble(jg_cb_rumble_t func) {
     jg_cb_rumble = func;
 }
+#endif
 
 int jg_init(void) {
     // Set callbacks
@@ -836,10 +911,18 @@ int jg_game_load(void) {
     // Audio and timing adjustments
     if (Bsnes::getRegion() == Bsnes::Region::PAL) {
         audinfo.spf = (SAMPLERATE / FRAMERATE_PAL) * CHANNELS;
+#if JG_VERSION_NUMBER >= 10100
+        jg_cb_frametime(udata_frametime, TIMING_PAL);
+#else
         jg_cb_frametime(TIMING_PAL);
+#endif
     }
     else {
+#if JG_VERSION_NUMBER >= 10100
+        jg_cb_frametime(udata_frametime, TIMING_NTSC);
+#else
         jg_cb_frametime(TIMING_NTSC);
+#endif
     }
 
     // Power up!
@@ -911,6 +994,12 @@ void jg_media_select(void) {
 void jg_media_insert(void) {
 }
 
+void jg_media_mount(unsigned) {
+}
+
+void jg_media_set(unsigned) {
+}
+
 void jg_cheat_clear(void) {
     Bsnes::cheatsClear();
 }
@@ -929,6 +1018,11 @@ void jg_rehash(void) {
 }
 
 void jg_data_push(uint32_t, int, const void*, size_t) {
+}
+
+jg_systeminfo_t* jg_get_systemlist(size_t *num) {
+    *num = sizeof(systemlist) / sizeof(jg_systeminfo_t);
+    return systemlist;
 }
 
 jg_coreinfo_t* jg_get_coreinfo(const char*) {
@@ -970,6 +1064,15 @@ jg_setting_t* jg_get_dips(size_t *num) {
     return NULL;
 }
 
+jg_mediainfo_t* jg_get_mediainfo(void) {
+    return NULL;
+}
+
+jg_biosinfo_t* jg_get_bioslist(size_t *num) {
+    *num = sizeof(bioslist) / sizeof(jg_biosinfo_t);
+    return bioslist;
+}
+
 void jg_setup_video(void) {
     Bsnes::setVideoSpec({(uint32_t*)vidinfo.buf, nullptr, &videoFrame});
 }
@@ -977,7 +1080,11 @@ void jg_setup_video(void) {
 void jg_setup_audio(void) {
     Bsnes::setAudioSpec({double(SAMPLERATE), audinfo.spf,
         unsigned(settings_bsnes[RSQUAL].val),
+#if JG_VERSION_NUMBER >= 10100
+        (float*)audinfo.buf, udata_audio, &audioFrame});
+#else
         (float*)audinfo.buf, nullptr, &audioFrame});
+#endif
 }
 
 void jg_set_inputstate(jg_inputstate_t *ptr, int port) {
@@ -998,4 +1105,8 @@ void jg_set_auxinfo(jg_fileinfo_t info, int index) {
 
 void jg_set_paths(jg_pathinfo_t paths) {
     pathinfo = paths;
+}
+
+unsigned jg_api_version(void) {
+    return JG_VERSION_NUMBER;
 }

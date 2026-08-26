@@ -23,8 +23,8 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 
-#include "function.hpp"
 #include "serializer.hpp"
 
 namespace Processor {
@@ -138,7 +138,7 @@ struct ARM7TDMI {
     inline GPR& operator=(uint32_t value);
 
     uint32_t data;
-    bfunction<void ()> modify;
+    std::function<void ()> modify;
   };
 
   struct PSR {
@@ -219,8 +219,8 @@ struct ARM7TDMI {
   bool carry;
   bool irq;
 
-  bfunction<void (uint32_t opcode)> armInstruction[4096];
-  bfunction<void ()> thumbInstruction[65536];
+  std::function<void (uint32_t opcode)> armInstruction[4096];
+  std::function<void ()> thumbInstruction[65536];
 
   uint32_t _pc;
 };

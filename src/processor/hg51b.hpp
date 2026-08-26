@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include "function.hpp"
-
 //Hitachi HG51B S169
 
 namespace Processor {
@@ -195,7 +193,7 @@ protected:
   } io;
 
   uint32_t stack[8];
-  bfunction<void ()> instructionTable[65536];
+  std::function<void ()> instructionTable[65536];
 };
 
 }

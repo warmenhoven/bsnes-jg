@@ -30,8 +30,8 @@ S21FX::S21FX() {
   resetVector.byte(0) = bus.read(0xfffc, 0x00);
   resetVector.byte(1) = bus.read(0xfffd, 0x00);
 
-  bus.map({&S21FX::read, this}, {&S21FX::write, this}, "00-3f,80-bf:2184-21ff");
-  bus.map({&S21FX::read, this}, {&S21FX::write, this}, "00:fffc-fffd");
+  bus.map(memfn(&S21FX::read, this), memfn(&S21FX::write, this), "00-3f,80-bf:2184-21ff");
+  bus.map(memfn(&S21FX::read, this), memfn(&S21FX::write, this), "00:fffc-fffd");
 
   booted = false;
 
@@ -84,12 +84,12 @@ auto S21FX::step(unsigned clocks) -> void {
 
 auto S21FX::main() -> void {
   if(linkInit) linkInit(
-    {&S21FX::quit, this},
-    {&S21FX::usleep, this},
-    {&S21FX::readable, this},
-    {&S21FX::writable, this},
-    {&S21FX::read, this},
-    {&S21FX::write, this}
+    memfn(&S21FX::quit, this),
+    memfn(&S21FX::usleep, this),
+    memfn(&S21FX::readable, this),
+    memfn(&S21FX::writable, this),
+    memfn(&S21FX::read, this),
+    memfn(&S21FX::write, this)
   );
   if(linkMain) linkMain({});
   while(true) step(10'000'000);

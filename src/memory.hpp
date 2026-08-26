@@ -21,9 +21,8 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <string>
-
-#include "function.hpp"
 
 namespace SuperFamicom {
 
@@ -88,8 +87,8 @@ struct Bus {
 
   void reset();
   unsigned map(
-    const bfunction<uint8_t (unsigned, uint8_t)>&,
-    const bfunction<void (unsigned, uint8_t)>&,
+    const std::function<uint8_t (unsigned, uint8_t)>&,
+    const std::function<void (unsigned, uint8_t)>&,
     const std::string&, unsigned = 0, unsigned = 0, unsigned = 0
   );
   void unmap(const std::string&);
@@ -98,8 +97,8 @@ private:
   uint8_t *lookup = nullptr;
   uint32_t *target = nullptr;
 
-  bfunction<uint8_t (unsigned, uint8_t)> reader[256];
-  bfunction<void  (unsigned, uint8_t)> writer[256];
+  std::function<uint8_t (unsigned, uint8_t)> reader[256];
+  std::function<void  (unsigned, uint8_t)> writer[256];
   unsigned counter[256];
 };
 

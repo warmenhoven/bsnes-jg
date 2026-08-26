@@ -18,6 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "function.hpp"
 #include "serializer.hpp"
 #include "cpu.hpp"
 #include "memory.hpp"
@@ -396,7 +397,7 @@ void SDD1::unload() {
 void SDD1::power() {
   //hook S-CPU DMA MMIO registers to gather information for struct dma[];
   //buffer address and transfer size information for use in SDD1::mcu_read()
-  bus.map({&SDD1::dmaRead, &sdd1}, {&SDD1::dmaWrite, &sdd1}, "00-3f,80-bf:4300-437f");
+  bus.map(memfn(&SDD1::dmaRead, &sdd1), memfn(&SDD1::dmaWrite, &sdd1), "00-3f,80-bf:4300-437f");
 
   r4800 = 0x00;
   r4801 = 0x00;

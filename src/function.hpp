@@ -1,7 +1,8 @@
 /*
- * nall - C++ template library
+ * bsnes-jg - Super Nintendo emulator
  *
- * Copyright © 2006-2020 byuu et al
+ * Copyright (C) 2004-2020 byuu
+ * Copyright (C) 2020-2026 Rupert Carmichael
  *
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
@@ -20,7 +21,7 @@
 
 #pragma once
 
-#include <utility>
+#include <functional>
 
 template <typename T, unsigned B>
 inline T signextend(const T x) {
@@ -28,52 +29,9 @@ inline T signextend(const T x) {
   return s.x = x;
 }
 
-template<typename T> struct bfunction;
-
-template<typename R, typename... P> struct bfunction<R (P...)> {
-  template<typename L> struct is_compatible {
-    template<typename T> static const typename std::is_same<R, decltype(std::declval<T>().operator()(std::declval<P>()...))>::type exists(T*);
-    static constexpr bool value = decltype(exists<L>(0))::value;
-  };
-
-  bfunction() {}
-  template<typename C> bfunction(R (C::*_bfunction)(P...), C* object) { callback = new member<C>(_bfunction, object); }
-  template<typename L, typename = typename std::enable_if<is_compatible<L>::value>::type> bfunction(const L& object) { callback = new lambda<L>(object); }
-  ~bfunction() { if(callback) delete callback; }
-
-  explicit operator bool() const { return callback; }
-  R operator()(P... p) const { return (*callback)(std::forward<P>(p)...); }
-  void reset() { if(callback) { delete callback; callback = nullptr; } }
-
-  bfunction& operator=(const bfunction& source) {
-    if(this != &source) {
-      if(callback) { delete callback; callback = nullptr; }
-      if(source.callback) callback = source.callback->copy();
-    }
-    return *this;
-  }
-
-private:
-  struct container {
-    virtual R operator()(P... p) const = 0;
-    virtual container* copy() const = 0;
-    virtual ~container() = default;
-  };
-
-  container* callback = nullptr;
-
-  template<typename C> struct member : container {
-    R (C::*bfunction)(P...);
-    C* object;
-    R operator()(P... p) const { return (object->*bfunction)(std::forward<P>(p)...); }
-    container* copy() const { return new member(bfunction, object); }
-    member(R (C::*_bfunction)(P...), C* obj) : bfunction(_bfunction), object(obj) {}
-  };
-
-  template<typename L> struct lambda : container {
-    mutable L object;
-    R operator()(P... p) const { return object(std::forward<P>(p)...); }
-    container* copy() const { return new lambda(object); }
-    lambda(const L& obj) : object(obj) {}
-  };
-};
+//std::function has no constructor taking a pointer-to-member and an object,
+//so supply one; <functional> covers every other use in the tree.
+template<typename C, typename R, typename... P>
+inline std::function<R (P...)> memfn(R (C::*fn)(P...), C *obj) {
+  return [fn, obj](P... p) -> R { return (obj->*fn)(p...); };
+}
