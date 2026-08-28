@@ -61,6 +61,10 @@ include:
 
   #################################### MISC ##################################
 
+  # webOS 32-bit (LGTV)
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/webos-make.yml'
+
 # Stages for building
 stages:
   - build-prepare
@@ -155,4 +159,11 @@ libretro-build-ios9:
 libretro-build-tvos-arm64:
   extends:
     - .libretro-tvos-arm64-make-default
+    - .core-defs
+
+#################################### MISC ####################################
+# webOS 32-bit
+libretro-build-webos-armv7a:
+  extends:
+    - .libretro-webos-armv7a-make-default
     - .core-defs
