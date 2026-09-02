@@ -431,6 +431,18 @@ private:
 
     void serialize(serializer&);
 
+    //Every window test depends on x only through the pair (one, two), which
+    //takes at most four values across a scanline. Memoise on that pair;
+    //writeIO invalidates whenever a register feeding a test changes.
+    struct Cache {
+      uint8_t key;     //one << 1 | two; 0xff = invalid
+      uint16_t clear;  //bit n*2 = clear layer n above, n*2+1 = below
+      uint8_t colorAbove;
+      uint8_t colorBelow;
+    } cache;
+
+    void invalidate() { cache.key = 0xff; }
+
     struct IO {
       struct Layer {
         bool oneEnable;

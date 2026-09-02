@@ -738,6 +738,7 @@ void PPU::writeIO(unsigned addr, uint8_t data) {
     window.io.bg2.oneEnable = data >> 5 & 1;
     window.io.bg2.twoInvert = data >> 6 & 1;
     window.io.bg2.twoEnable = data >> 7 & 1;
+    window.invalidate();
     return;
   }
 
@@ -751,6 +752,7 @@ void PPU::writeIO(unsigned addr, uint8_t data) {
     window.io.bg4.oneEnable = data >> 5 & 1;
     window.io.bg4.twoInvert = data >> 6 & 1;
     window.io.bg4.twoEnable = data >> 7 & 1;
+    window.invalidate();
     return;
   }
 
@@ -764,30 +766,35 @@ void PPU::writeIO(unsigned addr, uint8_t data) {
     window.io.col.oneEnable = data >> 5 & 1;
     window.io.col.twoInvert = data >> 6 & 1;
     window.io.col.twoEnable = data >> 7 & 1;
+    window.invalidate();
     return;
   }
 
   //WH0
   case 0x2126: {
     window.io.oneLeft = data;
+    window.invalidate();
     return;
   }
 
   //WH1
   case 0x2127: {
     window.io.oneRight = data;
+    window.invalidate();
     return;
   }
 
   //WH2
   case 0x2128: {
     window.io.twoLeft = data;
+    window.invalidate();
     return;
   }
 
   //WH3
   case 0x2129: {
     window.io.twoRight = data;
+    window.invalidate();
     return;
   }
 
@@ -797,6 +804,7 @@ void PPU::writeIO(unsigned addr, uint8_t data) {
     window.io.bg2.mask = data >> 2 & 3;
     window.io.bg3.mask = data >> 4 & 3;
     window.io.bg4.mask = data >> 6 & 3;
+    window.invalidate();
     return;
   }
 
@@ -804,6 +812,7 @@ void PPU::writeIO(unsigned addr, uint8_t data) {
   case 0x212b: {
     window.io.obj.mask = data >> 0 & 3;
     window.io.col.mask = data >> 2 & 3;
+    window.invalidate();
     return;
   }
 
@@ -834,6 +843,7 @@ void PPU::writeIO(unsigned addr, uint8_t data) {
     window.io.bg3.aboveEnable = data >> 2 & 1;
     window.io.bg4.aboveEnable = data >> 3 & 1;
     window.io.obj.aboveEnable = data >> 4 & 1;
+    window.invalidate();
     return;
   }
 
@@ -844,6 +854,7 @@ void PPU::writeIO(unsigned addr, uint8_t data) {
     window.io.bg3.belowEnable = data >> 2 & 1;
     window.io.bg4.belowEnable = data >> 3 & 1;
     window.io.obj.belowEnable = data >> 4 & 1;
+    window.invalidate();
     return;
   }
 
@@ -853,6 +864,7 @@ void PPU::writeIO(unsigned addr, uint8_t data) {
     screen.io.blendMode     = data >> 1 & 1;
     window.io.col.belowMask = data >> 4 & 3;
     window.io.col.aboveMask = data >> 6 & 3;
+    window.invalidate();
     return;
   }
 
@@ -1640,6 +1652,7 @@ void PPU::Object::power() {
 
 void PPU::Window::scanline() {
   x = 0;
+  invalidate();
 }
 
 void PPU::Window::run() {
@@ -1647,35 +1660,55 @@ void PPU::Window::run() {
   bool two = (x >= io.twoLeft && x <= io.twoRight);
   ++x;
 
-  if(test(io.bg1.oneEnable, one ^ io.bg1.oneInvert, io.bg1.twoEnable, two ^ io.bg1.twoInvert, io.bg1.mask)) {
-    if(io.bg1.aboveEnable) ppu.bg1.output.above.priority = 0;
-    if(io.bg1.belowEnable) ppu.bg1.output.below.priority = 0;
+  uint8_t key = (uint8_t)one << 1 | (uint8_t)two;
+  if(key != cache.key) {
+    cache.key = key;
+    uint16_t clear = 0;
+
+    if(test(io.bg1.oneEnable, one ^ io.bg1.oneInvert, io.bg1.twoEnable, two ^ io.bg1.twoInvert, io.bg1.mask)) {
+      if(io.bg1.aboveEnable) clear |= 0x0001;
+      if(io.bg1.belowEnable) clear |= 0x0002;
+    }
+    if(test(io.bg2.oneEnable, one ^ io.bg2.oneInvert, io.bg2.twoEnable, two ^ io.bg2.twoInvert, io.bg2.mask)) {
+      if(io.bg2.aboveEnable) clear |= 0x0004;
+      if(io.bg2.belowEnable) clear |= 0x0008;
+    }
+    if(test(io.bg3.oneEnable, one ^ io.bg3.oneInvert, io.bg3.twoEnable, two ^ io.bg3.twoInvert, io.bg3.mask)) {
+      if(io.bg3.aboveEnable) clear |= 0x0010;
+      if(io.bg3.belowEnable) clear |= 0x0020;
+    }
+    if(test(io.bg4.oneEnable, one ^ io.bg4.oneInvert, io.bg4.twoEnable, two ^ io.bg4.twoInvert, io.bg4.mask)) {
+      if(io.bg4.aboveEnable) clear |= 0x0040;
+      if(io.bg4.belowEnable) clear |= 0x0080;
+    }
+    if(test(io.obj.oneEnable, one ^ io.obj.oneInvert, io.obj.twoEnable, two ^ io.obj.twoInvert, io.obj.mask)) {
+      if(io.obj.aboveEnable) clear |= 0x0100;
+      if(io.obj.belowEnable) clear |= 0x0200;
+    }
+    cache.clear = clear;
+
+    bool value = test(io.col.oneEnable, one ^ io.col.oneInvert, io.col.twoEnable, two ^ io.col.twoInvert, io.col.mask);
+    bool array[] = {true, value, !value, false};
+    cache.colorAbove = array[io.col.aboveMask];
+    cache.colorBelow = array[io.col.belowMask];
   }
 
-  if(test(io.bg2.oneEnable, one ^ io.bg2.oneInvert, io.bg2.twoEnable, two ^ io.bg2.twoInvert, io.bg2.mask)) {
-    if(io.bg2.aboveEnable) ppu.bg2.output.above.priority = 0;
-    if(io.bg2.belowEnable) ppu.bg2.output.below.priority = 0;
+  uint16_t clear = cache.clear;
+  if(clear) {
+    if(clear & 0x0001) ppu.bg1.output.above.priority = 0;
+    if(clear & 0x0002) ppu.bg1.output.below.priority = 0;
+    if(clear & 0x0004) ppu.bg2.output.above.priority = 0;
+    if(clear & 0x0008) ppu.bg2.output.below.priority = 0;
+    if(clear & 0x0010) ppu.bg3.output.above.priority = 0;
+    if(clear & 0x0020) ppu.bg3.output.below.priority = 0;
+    if(clear & 0x0040) ppu.bg4.output.above.priority = 0;
+    if(clear & 0x0080) ppu.bg4.output.below.priority = 0;
+    if(clear & 0x0100) ppu.obj.output.above.priority = 0;
+    if(clear & 0x0200) ppu.obj.output.below.priority = 0;
   }
 
-  if(test(io.bg3.oneEnable, one ^ io.bg3.oneInvert, io.bg3.twoEnable, two ^ io.bg3.twoInvert, io.bg3.mask)) {
-    if(io.bg3.aboveEnable) ppu.bg3.output.above.priority = 0;
-    if(io.bg3.belowEnable) ppu.bg3.output.below.priority = 0;
-  }
-
-  if(test(io.bg4.oneEnable, one ^ io.bg4.oneInvert, io.bg4.twoEnable, two ^ io.bg4.twoInvert, io.bg4.mask)) {
-    if(io.bg4.aboveEnable) ppu.bg4.output.above.priority = 0;
-    if(io.bg4.belowEnable) ppu.bg4.output.below.priority = 0;
-  }
-
-  if(test(io.obj.oneEnable, one ^ io.obj.oneInvert, io.obj.twoEnable, two ^ io.obj.twoInvert, io.obj.mask)) {
-    if(io.obj.aboveEnable) ppu.obj.output.above.priority = 0;
-    if(io.obj.belowEnable) ppu.obj.output.below.priority = 0;
-  }
-
-  bool value = test(io.col.oneEnable, one ^ io.col.oneInvert, io.col.twoEnable, two ^ io.col.twoInvert, io.col.mask);
-  bool array[] = {true, value, !value, false};
-  output.above.colorEnable = array[io.col.aboveMask];
-  output.below.colorEnable = array[io.col.belowMask];
+  output.above.colorEnable = cache.colorAbove;
+  output.below.colorEnable = cache.colorBelow;
 }
 
 bool PPU::Window::test(bool oneEnable, bool one, bool twoEnable, bool two, unsigned mask) {
@@ -1734,6 +1767,8 @@ void PPU::Window::power() {
   io.col.mask = random() & 3;
   io.col.aboveMask = random() & 3;
   io.col.belowMask = random() & 3;
+
+  cache.key = 0xff;
 
   io.oneLeft = random();
   io.oneRight = random();
@@ -2177,6 +2212,9 @@ void PPU::Window::serialize(serializer& s) {
   s.integer(output.below.colorEnable);
 
   s.integer(x);
+
+  //cache is derived from io; a load replaces io wholesale
+  if(s.mode() == serializer::Load) invalidate();
 }
 
 void PPU::Screen::serialize(serializer& s) {
