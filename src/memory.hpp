@@ -89,11 +89,29 @@ struct Bus {
   unsigned map(
     const std::function<uint8_t (unsigned, uint8_t)>&,
     const std::function<void (unsigned, uint8_t)>&,
-    const std::string&, unsigned = 0, unsigned = 0, unsigned = 0
+    const std::string&, unsigned = 0, unsigned = 0, unsigned = 0,
+    uint8_t* = nullptr, unsigned = 0, bool = false
   );
   void unmap(const std::string&);
 
 private:
+  //Direct-pointer fast path. A page qualifies only when a single mapping covers
+  //it end to end and target[] runs linearly across it; map() detects that as it
+  //walks the range, so there is no separate analysis pass. Every other page
+  //keeps the function path, which is what preserves MMIO side effects, open bus
+  //and the Memory::GlobalWriteEnable gate on ROM writes.
+  enum : unsigned {
+    fastPageBits = 13,                       //8 KiB: the smallest window any
+    fastPageSize = 1u << fastPageBits,       //mapping uses, so the WRAM mirrors
+    fastPageMask = fastPageSize - 1,         //still qualify
+    fastPageCount = 0x1000000 >> fastPageBits
+  };
+
+  //points at the backing byte for offset 0 of the page, so indexing with
+  //(addr & fastPageMask) always stays inside the allocation
+  uint8_t* fastRead[fastPageCount] = {};
+  uint8_t* fastWrite[fastPageCount] = {};
+
   uint8_t *lookup = nullptr;
   uint32_t *target = nullptr;
 
@@ -208,10 +226,15 @@ unsigned Bus::reduce(unsigned addr, unsigned mask) {
 }
 
 uint8_t Bus::read(unsigned addr, uint8_t data) {
+  if(uint8_t* page = fastRead[addr >> fastPageBits]) return page[addr & fastPageMask];
   return reader[lookup[addr]](target[addr], data);
 }
 
 void Bus::write(unsigned addr, uint8_t data) {
+  if(uint8_t* page = fastWrite[addr >> fastPageBits]) {
+    page[addr & fastPageMask] = data;
+    return;
+  }
   return writer[lookup[addr]](target[addr], data);
 }
 

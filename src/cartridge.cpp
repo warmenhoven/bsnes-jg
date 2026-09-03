@@ -18,6 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <type_traits>
 #include <algorithm>
 #include <cstring>
 #include <iterator>
@@ -197,7 +198,12 @@ unsigned Cartridge::loadMap(std::string map, T& memory) {
   unsigned mask = strmask.empty() ? 0 : std::stoi(strmask, nullptr, 16);
   if(size == 0) size = memory.size();
   if(size == 0) return 0; //does this ever actually occur? - Yes! Sufami Turbo.
-  return bus.map(memfn(&T::read, &memory), memfn(&T::write, &memory), addr, size, base, mask);
+  //ReadableMemory::read and WritableMemory::read are both a plain array index,
+  //so either can take the fast read path. Only WritableMemory::write is plain;
+  //ReadableMemory::write is gated on Memory::GlobalWriteEnable, so ROM keeps the
+  //function path for writes and that gate still applies.
+  return bus.map(memfn(&T::read, &memory), memfn(&T::write, &memory), addr, size, base, mask,
+                 memory.data(), memory.size(), std::is_same<T, WritableMemory>::value);
 }
 
 unsigned Cartridge::loadMap(

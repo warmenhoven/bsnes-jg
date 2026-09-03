@@ -1152,8 +1152,9 @@ void CPU::power(bool reset) {
 
   reader = memfn(&CPU::readRAM, this);
   writer = memfn(&CPU::writeRAM, this);
-  bus.map(reader, writer, "00-3f,80-bf:0000-1fff", 0x2000);
-  bus.map(reader, writer, "7e-7f:0000-ffff", 0x20000);
+  //readRAM/writeRAM are a plain wram[] index with no side effects
+  bus.map(reader, writer, "00-3f,80-bf:0000-1fff", 0x2000, 0, 0, wram, sizeof(wram), true);
+  bus.map(reader, writer, "7e-7f:0000-ffff", 0x20000, 0, 0, wram, sizeof(wram), true);
 
   reader = memfn(&CPU::readAPU, this);
   writer = memfn(&CPU::writeAPU, this);
