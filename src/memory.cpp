@@ -51,6 +51,11 @@ void Bus::reset() {
   lookup = new uint8_t [16 * 1024 * 1024]();
   target = new uint32_t[16 * 1024 * 1024]();
 
+  for(unsigned page = 0; page < fastPageCount; ++page) {
+    fastRead[page] = nullptr;
+    fastWrite[page] = nullptr;
+  }
+
   reader[0] = [](unsigned, uint8_t data) -> uint8_t { return data; };
   writer[0] = [](unsigned, uint8_t) -> void {};
 }
@@ -58,7 +63,8 @@ void Bus::reset() {
 unsigned Bus::map(
   const std::function<uint8_t (unsigned, uint8_t)>& read,
   const std::function<void  (unsigned, uint8_t)>& write,
-  const std::string& addr, unsigned size, unsigned base, unsigned mask
+  const std::string& addr, unsigned size, unsigned base, unsigned mask,
+  uint8_t* fastData, unsigned fastCapacity, bool fastWritable
 ) {
   unsigned id = 1;
   while(counter[id]) {
@@ -67,6 +73,11 @@ unsigned Bus::map(
 
   reader[id] = read;
   writer[id] = write;
+
+  //rolling state for fast-page detection, updated as the range is walked
+  unsigned fastPage = ~0u;   //page currently being examined
+  unsigned fastBase = 0;     //target[] at the start of that page
+  bool fastOk = false;       //page still a candidate
 
   std::stringstream ss(addr);
   std::vector<std::string> p;
@@ -105,9 +116,29 @@ unsigned Bus::map(
           unsigned offset = reduce(bank2 << 16 | addr3, mask);
           if(size) base = mirror(base, size);
           if(size) offset = base + mirror(offset, size - base);
-          lookup[bank2 << 16 | addr3] = id;
-          target[bank2 << 16 | addr3] = offset;
+          unsigned full = bank2 << 16 | addr3;
+          lookup[full] = id;
+          target[full] = offset;
           ++counter[id];
+
+          //A page qualifies only if this mapping supplies it from the first
+          //byte to the last with target[] advancing by one each step, and the
+          //whole page lies inside the backing store.
+          if((full >> fastPageBits) != fastPage) {
+            fastPage = full >> fastPageBits;
+            fastRead[fastPage] = nullptr;
+            fastWrite[fastPage] = nullptr;
+            fastBase = offset;
+            fastOk = fastData && (full & fastPageMask) == 0
+                  && (uint64_t)offset + fastPageSize <= (uint64_t)fastCapacity;
+          } else if(fastOk && offset != fastBase + (full & fastPageMask)) {
+            fastOk = false;
+          }
+
+          if(fastOk && (full & fastPageMask) == fastPageMask) {
+            fastRead[fastPage] = fastData + fastBase;
+            if(fastWritable) fastWrite[fastPage] = fastData + fastBase;
+          }
         }
       }
     }
@@ -151,6 +182,8 @@ void Bus::unmap(const std::string& addr) {
 
           lookup[bank2 << 16 | addr3] = 0;
           target[bank2 << 16 | addr3] = 0;
+          fastRead[(bank2 << 16 | addr3) >> fastPageBits] = nullptr;
+          fastWrite[(bank2 << 16 | addr3) >> fastPageBits] = nullptr;
         }
       }
     }
