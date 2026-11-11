@@ -1275,10 +1275,11 @@ void HG51B::halt() {
   io.halt = 1;
 }
 
+//DMA to or from internal RAM costs only the wait states of the cartridge side
 unsigned HG51B::wait(uint32_t address) {
   if(isROM(address)) return 1 + io.wait.rom;
   if(isRAM(address)) return 1 + io.wait.ram;
-  return 1;
+  return 0;
 }
 
 void HG51B::main() {
